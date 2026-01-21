@@ -5,6 +5,3 @@ mss
 pyautogui
 pyyaml
 loguru
-
-#cd "C:\Users\Spinola\OneDrive\Laboratorio\VSCode\PokeBot-Pro\PokeBot_Pro"
-#python run_bot.py
