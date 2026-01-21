@@ -1,10 +1,11 @@
 # Python Automation & Computer Vision Bot 🤖
 Autonomous game agent using Tesseract OCR, MVC Architecture, and ETL pipelines for real-time strategy.
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-green.svg)](https://opencv.org/)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-Computer_Vision-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
+[![Tesseract](https://img.shields.io/badge/Tesseract-OCR-green?logo=google&logoColor=white)](https://github.com/tesseract-ocr/tesseract)
+[![Selenium](https://img.shields.io/badge/Selenium-Automation-43B02A?logo=selenium&logoColor=white)](https://www.selenium.dev/)
+[![Status](https://img.shields.io/badge/Status-Active-brightgreen)]()
 
 An advanced, autonomous bot for Tibianic-like Pokémon MMORPGs, built with **Python**, **OpenCV**, and **Tesseract OCR**. This project demonstrates the power of computer vision and state machine logic for game automation.
 
