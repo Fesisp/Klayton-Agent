@@ -1,0 +1,17 @@
+{
+  "time_ativo": [
+    "klayton_chikorita"
+  ],
+  "elenco": {
+    "klayton_chikorita": {
+      "nome_base": "Chikorita",
+      "level": 14,
+      "movimentos_atuais": [
+        "Growl",
+        "Tackle",
+        "Razor Leaf",
+        "Poison Powder"
+      ]
+    }
+  }
+}

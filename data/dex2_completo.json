@@ -1,0 +1,4042 @@
+{
+  "Ivyssaur": {
+    "numero": 2,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Venossaur": {
+    "numero": 3,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Charmander†": {
+    "numero": 4,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Charmeleon": {
+    "numero": 5,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Charizard": {
+    "numero": 6,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Squirtle†": {
+    "numero": 7,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wartortle": {
+    "numero": 8,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Blastoise": {
+    "numero": 9,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Caterpie": {
+    "numero": 10,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Metapod": {
+    "numero": 11,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Butterfree": {
+    "numero": 12,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Weedle": {
+    "numero": 13,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kakuna": {
+    "numero": 14,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Beedrill": {
+    "numero": 15,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pidgey": {
+    "numero": 16,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pidgeotto": {
+    "numero": 17,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pidgeot": {
+    "numero": 18,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rattata": {
+    "numero": 19,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Raticate": {
+    "numero": 20,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spearow": {
+    "numero": 21,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Fearow": {
+    "numero": 22,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ekans": {
+    "numero": 23,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Arbok": {
+    "numero": 24,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pikachu": {
+    "numero": 25,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Raichu": {
+    "numero": 26,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sandshrew": {
+    "numero": 27,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sandslash": {
+    "numero": 28,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nidoran♀": {
+    "numero": 29,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nidorina": {
+    "numero": 30,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nidoqueen": {
+    "numero": 31,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nidoran♂": {
+    "numero": 32,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nidorino": {
+    "numero": 33,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nidoking": {
+    "numero": 34,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Clefairy": {
+    "numero": 35,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Clefable": {
+    "numero": 36,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vulpix": {
+    "numero": 37,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ninetales": {
+    "numero": 38,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jigglypuff": {
+    "numero": 39,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wigglytuff": {
+    "numero": 40,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zubat": {
+    "numero": 41,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Golbat": {
+    "numero": 42,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Oddish": {
+    "numero": 43,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gloom": {
+    "numero": 44,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vileplume": {
+    "numero": 45,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Paras": {
+    "numero": 46,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Parasect": {
+    "numero": 47,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Venonat": {
+    "numero": 48,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Venomoth": {
+    "numero": 49,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Diglett": {
+    "numero": 50,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dugtrio": {
+    "numero": 51,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Meowth": {
+    "numero": 52,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Persian": {
+    "numero": 53,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Psyduck": {
+    "numero": 54,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Golduck": {
+    "numero": 55,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mankey": {
+    "numero": 56,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Primeape": {
+    "numero": 57,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Growlithe": {
+    "numero": 58,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Arcanine": {
+    "numero": 59,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Poliwag": {
+    "numero": 60,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Poliwhirl": {
+    "numero": 61,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Poliwrath": {
+    "numero": 62,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Abra": {
+    "numero": 63,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kadabra": {
+    "numero": 64,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Alakazam": {
+    "numero": 65,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Machop": {
+    "numero": 66,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Machoke": {
+    "numero": 67,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Machamp": {
+    "numero": 68,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bellsprout": {
+    "numero": 69,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Weepinbell": {
+    "numero": 70,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Victreebel": {
+    "numero": 71,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tentacool": {
+    "numero": 72,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tentacruel": {
+    "numero": 73,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Geodude": {
+    "numero": 74,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Graveler": {
+    "numero": 75,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Golem": {
+    "numero": 76,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ponyta": {
+    "numero": 77,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rapidash": {
+    "numero": 78,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slowpoke": {
+    "numero": 79,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slowbro": {
+    "numero": 80,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magnemite": {
+    "numero": 81,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magneton": {
+    "numero": 82,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Farfetch'd": {
+    "numero": 83,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Doduo": {
+    "numero": 84,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dodrio": {
+    "numero": 85,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Seel": {
+    "numero": 86,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dewgong": {
+    "numero": 87,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Grimer": {
+    "numero": 88,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Muk": {
+    "numero": 89,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shellder": {
+    "numero": 90,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cloyster": {
+    "numero": 91,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gastly": {
+    "numero": 92,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Haunter": {
+    "numero": 93,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gengar": {
+    "numero": 94,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Onix": {
+    "numero": 95,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Drowzee": {
+    "numero": 96,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hypno": {
+    "numero": 97,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Krabby": {
+    "numero": 98,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kingler": {
+    "numero": 99,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Voltorb": {
+    "numero": 100,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Electrode": {
+    "numero": 101,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Exeggcute": {
+    "numero": 102,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Exeggutor": {
+    "numero": 103,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cubone": {
+    "numero": 104,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Marowak": {
+    "numero": 105,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hitmonlee": {
+    "numero": 106,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hitmonchan": {
+    "numero": 107,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lickitung": {
+    "numero": 108,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Koffing": {
+    "numero": 109,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Weezing": {
+    "numero": 110,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rhyhorn": {
+    "numero": 111,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rhydon": {
+    "numero": 112,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chansey": {
+    "numero": 113,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tangela": {
+    "numero": 114,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kangaskhan": {
+    "numero": 115,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Horsea": {
+    "numero": 116,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Seadra": {
+    "numero": 117,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Goldeen": {
+    "numero": 118,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Seaking": {
+    "numero": 119,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Staryu": {
+    "numero": 120,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Starmie": {
+    "numero": 121,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mr. Mime": {
+    "numero": 122,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Scyther": {
+    "numero": 123,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jynx": {
+    "numero": 124,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Electabuzz": {
+    "numero": 125,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magmar": {
+    "numero": 126,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pinsir": {
+    "numero": 127,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tauros": {
+    "numero": 128,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magikarp": {
+    "numero": 129,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gyarados": {
+    "numero": 130,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lapras": {
+    "numero": 131,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ditto": {
+    "numero": 132,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Eevee": {
+    "numero": 133,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vaporeon": {
+    "numero": 134,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jolteon": {
+    "numero": 135,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Flareon": {
+    "numero": 136,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Porygon": {
+    "numero": 137,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Omanyte": {
+    "numero": 138,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Omastar": {
+    "numero": 139,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kabuto": {
+    "numero": 140,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kabutops": {
+    "numero": 141,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aerodactyl": {
+    "numero": 142,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Snorlax": {
+    "numero": 143,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Articuno": {
+    "numero": 144,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zapdos": {
+    "numero": 145,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Moltres": {
+    "numero": 146,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dratini": {
+    "numero": 147,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dragonair": {
+    "numero": 148,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dragonite": {
+    "numero": 149,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mewtwo": {
+    "numero": 150,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mew": {
+    "numero": 151,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chikorita": {
+    "numero": 152,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bayleef": {
+    "numero": 153,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Meganium": {
+    "numero": 154,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cyndaquil": {
+    "numero": 155,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Quilava": {
+    "numero": 156,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Typhlosion": {
+    "numero": 157,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Totodile": {
+    "numero": 158,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Croconaw": {
+    "numero": 159,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Feraligatr": {
+    "numero": 160,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sentret": {
+    "numero": 161,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Furret": {
+    "numero": 162,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hoothoot": {
+    "numero": 163,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Noctowl": {
+    "numero": 164,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ledyba": {
+    "numero": 165,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ledian": {
+    "numero": 166,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spinarak": {
+    "numero": 167,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ariados": {
+    "numero": 168,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Crobat": {
+    "numero": 169,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chinchou": {
+    "numero": 170,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lanturn": {
+    "numero": 171,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pichu": {
+    "numero": 172,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cleffa": {
+    "numero": 173,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Igglybuff": {
+    "numero": 174,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Togepi": {
+    "numero": 175,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Togetic": {
+    "numero": 176,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Natu": {
+    "numero": 177,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Xatu": {
+    "numero": 178,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mareep": {
+    "numero": 179,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Flaaffy": {
+    "numero": 180,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ampharos": {
+    "numero": 181,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bellossom": {
+    "numero": 182,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Marill": {
+    "numero": 183,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Azumarill": {
+    "numero": 184,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sudowoodo": {
+    "numero": 185,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Politoed": {
+    "numero": 186,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hoppip": {
+    "numero": 187,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skiploom": {
+    "numero": 188,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jumpluff": {
+    "numero": 189,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aipom": {
+    "numero": 190,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sunkern": {
+    "numero": 191,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sunflora": {
+    "numero": 192,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Yanma": {
+    "numero": 193,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wooper": {
+    "numero": 194,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Quagsire": {
+    "numero": 195,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Espeon": {
+    "numero": 196,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Umbreon": {
+    "numero": 197,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Murkrow": {
+    "numero": 198,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slowking": {
+    "numero": 199,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Misdreavus": {
+    "numero": 200,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Unown": {
+    "numero": 201,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wobbuffet": {
+    "numero": 202,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Girafarig": {
+    "numero": 203,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pineco": {
+    "numero": 204,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Forretress": {
+    "numero": 205,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dunsparce": {
+    "numero": 206,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gligar": {
+    "numero": 207,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Steelix": {
+    "numero": 208,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Snubbull": {
+    "numero": 209,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Granbull": {
+    "numero": 210,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Qwilfish": {
+    "numero": 211,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Scizor": {
+    "numero": 212,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shuckle": {
+    "numero": 213,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Heracross": {
+    "numero": 214,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sneasel": {
+    "numero": 215,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Teddiursa": {
+    "numero": 216,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ursaring": {
+    "numero": 217,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slugma": {
+    "numero": 218,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magcargo": {
+    "numero": 219,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swinub": {
+    "numero": 220,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Piloswine": {
+    "numero": 221,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Corsola": {
+    "numero": 222,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Remoraid": {
+    "numero": 223,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Octillery": {
+    "numero": 224,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Delibird": {
+    "numero": 225,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mantine": {
+    "numero": 226,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skarmory": {
+    "numero": 227,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Houndour": {
+    "numero": 228,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Houndoom": {
+    "numero": 229,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kingdra": {
+    "numero": 230,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Phanpy": {
+    "numero": 231,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Donphan": {
+    "numero": 232,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Porygon2": {
+    "numero": 233,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Stantler": {
+    "numero": 234,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Smeargle": {
+    "numero": 235,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tyrogue": {
+    "numero": 236,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hitmontop": {
+    "numero": 237,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Smoochum": {
+    "numero": 238,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Elekid": {
+    "numero": 239,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magby": {
+    "numero": 240,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Miltank": {
+    "numero": 241,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Blissey": {
+    "numero": 242,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Raikou": {
+    "numero": 243,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Entei": {
+    "numero": 244,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Suicune": {
+    "numero": 245,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Larvitar": {
+    "numero": 246,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pupitar": {
+    "numero": 247,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tyranitar": {
+    "numero": 248,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lugia": {
+    "numero": 249,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ho-oh": {
+    "numero": 250,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Celebi": {
+    "numero": 251,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Treecko": {
+    "numero": 252,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Grovyle": {
+    "numero": 253,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sceptile": {
+    "numero": 254,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Torchic": {
+    "numero": 255,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Combusken": {
+    "numero": 256,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Blaziken": {
+    "numero": 257,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mudkip": {
+    "numero": 258,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Marshtomp": {
+    "numero": 259,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swampert": {
+    "numero": 260,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Poochyena": {
+    "numero": 261,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mightyena": {
+    "numero": 262,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zigzagoon": {
+    "numero": 263,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Linoone": {
+    "numero": 264,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wurmple": {
+    "numero": 265,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Silcoon": {
+    "numero": 266,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Beautifly": {
+    "numero": 267,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cascoon": {
+    "numero": 268,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dustox": {
+    "numero": 269,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lotad": {
+    "numero": 270,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lombre": {
+    "numero": 271,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ludicolo": {
+    "numero": 272,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Seedot": {
+    "numero": 273,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nuzleaf": {
+    "numero": 274,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shiftry": {
+    "numero": 275,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Taillow": {
+    "numero": 276,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swellow": {
+    "numero": 277,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wingull": {
+    "numero": 278,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pelipper": {
+    "numero": 279,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ralts": {
+    "numero": 280,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kirlia": {
+    "numero": 281,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gardevoir": {
+    "numero": 282,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Surskit": {
+    "numero": 283,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Masquerain": {
+    "numero": 284,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shroomish": {
+    "numero": 285,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Breloom": {
+    "numero": 286,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slakoth": {
+    "numero": 287,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vigoroth": {
+    "numero": 288,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slaking": {
+    "numero": 289,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nincada": {
+    "numero": 290,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ninjask": {
+    "numero": 291,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shedinja": {
+    "numero": 292,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Whismur": {
+    "numero": 293,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Loudred": {
+    "numero": 294,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Exploud": {
+    "numero": 295,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Makuhita": {
+    "numero": 296,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hariyama": {
+    "numero": 297,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Azurill": {
+    "numero": 298,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nosepass": {
+    "numero": 299,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skitty": {
+    "numero": 300,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Delcatty": {
+    "numero": 301,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sableye": {
+    "numero": 302,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mawile": {
+    "numero": 303,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aron": {
+    "numero": 304,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lairon": {
+    "numero": 305,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aggron": {
+    "numero": 306,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Meditite": {
+    "numero": 307,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Medicham": {
+    "numero": 308,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Electrike": {
+    "numero": 309,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Manectric": {
+    "numero": 310,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Plusle": {
+    "numero": 311,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Minun": {
+    "numero": 312,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Volbeat": {
+    "numero": 313,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Illumise": {
+    "numero": 314,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Roselia": {
+    "numero": 315,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gulpin": {
+    "numero": 316,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swalot": {
+    "numero": 317,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Carvanha": {
+    "numero": 318,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sharpedo": {
+    "numero": 319,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wailmer": {
+    "numero": 320,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wailord": {
+    "numero": 321,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Numel": {
+    "numero": 322,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Camerupt": {
+    "numero": 323,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Torkoal": {
+    "numero": 324,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spoink": {
+    "numero": 325,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Grumpig": {
+    "numero": 326,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spinda": {
+    "numero": 327,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Trapinch": {
+    "numero": 328,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vibrava": {
+    "numero": 329,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Flygon": {
+    "numero": 330,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cacnea": {
+    "numero": 331,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cacturne": {
+    "numero": 332,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swablu": {
+    "numero": 333,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Altaria": {
+    "numero": 334,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zangoose": {
+    "numero": 335,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Seviper": {
+    "numero": 336,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lunatone": {
+    "numero": 337,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Solrock": {
+    "numero": 338,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Barboach": {
+    "numero": 339,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Whiscash": {
+    "numero": 340,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Corphish": {
+    "numero": 341,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Crawdaunt": {
+    "numero": 342,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Baltoy": {
+    "numero": 343,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Claydol": {
+    "numero": 344,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lileep": {
+    "numero": 345,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cradily": {
+    "numero": 346,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Anorith": {
+    "numero": 347,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Armaldo": {
+    "numero": 348,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Feebas": {
+    "numero": 349,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Milotic": {
+    "numero": 350,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Castform": {
+    "numero": 351,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kecleon": {
+    "numero": 352,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shuppet": {
+    "numero": 353,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Banette": {
+    "numero": 354,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Duskull": {
+    "numero": 355,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dusclops": {
+    "numero": 356,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tropius": {
+    "numero": 357,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chimecho": {
+    "numero": 358,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Absol": {
+    "numero": 359,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wynaut": {
+    "numero": 360,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Snorunt": {
+    "numero": 361,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Glalie": {
+    "numero": 362,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spheal": {
+    "numero": 363,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sealeo": {
+    "numero": 364,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Walrein": {
+    "numero": 365,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Clamperl": {
+    "numero": 366,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Huntail": {
+    "numero": 367,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gorebyss": {
+    "numero": 368,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Relicanth": {
+    "numero": 369,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Luvdisc": {
+    "numero": 370,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bagon": {
+    "numero": 371,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shelgon": {
+    "numero": 372,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Salamence": {
+    "numero": 373,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Beldum": {
+    "numero": 374,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Metang": {
+    "numero": 375,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Metagross": {
+    "numero": 376,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Regirock": {
+    "numero": 377,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Regice": {
+    "numero": 378,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Registeel": {
+    "numero": 379,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Latias": {
+    "numero": 380,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Latios": {
+    "numero": 381,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kyogre": {
+    "numero": 382,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Groudon": {
+    "numero": 383,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rayquaza": {
+    "numero": 384,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jirachi": {
+    "numero": 385,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Deoxys": {
+    "numero": 386,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Turtwig": {
+    "numero": 387,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Grotle": {
+    "numero": 388,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Torterra": {
+    "numero": 389,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chimchar": {
+    "numero": 390,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Monferno": {
+    "numero": 391,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Infernape": {
+    "numero": 392,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Piplup": {
+    "numero": 393,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Prinplup": {
+    "numero": 394,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Empoleon": {
+    "numero": 395,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Starly": {
+    "numero": 396,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Staravia": {
+    "numero": 397,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Staraptor": {
+    "numero": 398,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bidoof": {
+    "numero": 399,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bibarel": {
+    "numero": 400,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kricketot": {
+    "numero": 401,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kricketune": {
+    "numero": 402,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shinx": {
+    "numero": 403,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Luxio": {
+    "numero": 404,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Luxray": {
+    "numero": 405,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Budew": {
+    "numero": 406,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Roserade": {
+    "numero": 407,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cranidos": {
+    "numero": 408,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rampardos": {
+    "numero": 409,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shieldon": {
+    "numero": 410,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bastiodon": {
+    "numero": 411,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Burmy": {
+    "numero": 412,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wormadam": {
+    "numero": 413,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mothim": {
+    "numero": 414,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Combee": {
+    "numero": 415,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vespiquen": {
+    "numero": 416,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pachirisu": {
+    "numero": 417,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Buizel": {
+    "numero": 418,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Floatzel": {
+    "numero": 419,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cherubi": {
+    "numero": 420,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cherrim": {
+    "numero": 421,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shellos": {
+    "numero": 422,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gastrodon": {
+    "numero": 423,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ambipom": {
+    "numero": 424,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Drifloon": {
+    "numero": 425,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Drifblim": {
+    "numero": 426,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Buneary": {
+    "numero": 427,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lopunny": {
+    "numero": 428,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mismagius": {
+    "numero": 429,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Honchkrow": {
+    "numero": 430,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Glameow": {
+    "numero": 431,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Purugly": {
+    "numero": 432,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chingling": {
+    "numero": 433,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Stunky": {
+    "numero": 434,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skuntank": {
+    "numero": 435,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bronzor": {
+    "numero": 436,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bronzong": {
+    "numero": 437,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bonsly": {
+    "numero": 438,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mime Jr.": {
+    "numero": 439,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Happiny": {
+    "numero": 440,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chatot": {
+    "numero": 441,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spiritomb": {
+    "numero": 442,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gible": {
+    "numero": 443,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gabite": {
+    "numero": 444,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Garchomp": {
+    "numero": 445,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Munchlax": {
+    "numero": 446,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Riolu": {
+    "numero": 447,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lucario": {
+    "numero": 448,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hippopotas": {
+    "numero": 449,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hippowdon": {
+    "numero": 450,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skorupi": {
+    "numero": 451,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Drapion": {
+    "numero": 452,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Croagunk": {
+    "numero": 453,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Toxicroak": {
+    "numero": 454,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Carnivine": {
+    "numero": 455,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Finneon": {
+    "numero": 456,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lumineon": {
+    "numero": 457,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mantyke": {
+    "numero": 458,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Snover": {
+    "numero": 459,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Abomasnow": {
+    "numero": 460,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Weavile": {
+    "numero": 461,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magnezone": {
+    "numero": 462,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lickilicky": {
+    "numero": 463,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rhyperior": {
+    "numero": 464,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tangrowth": {
+    "numero": 465,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Electivire": {
+    "numero": 466,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magmortar": {
+    "numero": 467,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Togekiss": {
+    "numero": 468,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Yanmega": {
+    "numero": 469,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Leafeon": {
+    "numero": 470,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Glaceon": {
+    "numero": 471,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gliscor": {
+    "numero": 472,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mamoswine": {
+    "numero": 473,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Porygon-Z": {
+    "numero": 474,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gallade": {
+    "numero": 475,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Probopass": {
+    "numero": 476,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dusknoir": {
+    "numero": 477,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Froslass": {
+    "numero": 478,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rotom": {
+    "numero": 479,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Uxie": {
+    "numero": 480,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mesprit": {
+    "numero": 481,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Azelf": {
+    "numero": 482,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dialga": {
+    "numero": 483,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Palkia": {
+    "numero": 484,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Heatran": {
+    "numero": 485,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Regigigas": {
+    "numero": 486,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Giratina": {
+    "numero": 487,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cresselia": {
+    "numero": 488,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Phione": {
+    "numero": 489,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Manaphy": {
+    "numero": 490,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Darkrai": {
+    "numero": 491,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shaymin": {
+    "numero": 492,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Arceus": {
+    "numero": 493,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Victini": {
+    "numero": 494,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Snivy": {
+    "numero": 495,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Servine": {
+    "numero": 496,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Serperior": {
+    "numero": 497,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tepig": {
+    "numero": 498,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pignite": {
+    "numero": 499,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Emboar": {
+    "numero": 500,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Oshawott": {
+    "numero": 501,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dewott": {
+    "numero": 502,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Samurott": {
+    "numero": 503,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Patrat": {
+    "numero": 504,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Watchog": {
+    "numero": 505,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lillipup": {
+    "numero": 506,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Herdier": {
+    "numero": 507,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Stoutland": {
+    "numero": 508,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Purrloin": {
+    "numero": 509,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Liepard": {
+    "numero": 510,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pansage": {
+    "numero": 511,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Simisage": {
+    "numero": 512,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pansear": {
+    "numero": 513,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Simisear": {
+    "numero": 514,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Panpour": {
+    "numero": 515,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Simipour": {
+    "numero": 516,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Munna": {
+    "numero": 517,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Musharna": {
+    "numero": 518,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pidove": {
+    "numero": 519,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tranquill": {
+    "numero": 520,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Unfezant": {
+    "numero": 521,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Blitzle": {
+    "numero": 522,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zebstrika": {
+    "numero": 523,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Roggenrola": {
+    "numero": 524,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Boldore": {
+    "numero": 525,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gigalith": {
+    "numero": 526,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Woobat": {
+    "numero": 527,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swoobat": {
+    "numero": 528,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Drilbur": {
+    "numero": 529,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Excadrill": {
+    "numero": 530,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Audino": {
+    "numero": 531,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Timburr": {
+    "numero": 532,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gurdurr": {
+    "numero": 533,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Conkeldurr": {
+    "numero": 534,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tympole": {
+    "numero": 535,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Palpitoad": {
+    "numero": 536,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Seismitoad": {
+    "numero": 537,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Throh": {
+    "numero": 538,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sawk": {
+    "numero": 539,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sewaddle": {
+    "numero": 540,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swadloon": {
+    "numero": 541,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Leavanny": {
+    "numero": 542,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Venipede": {
+    "numero": 543,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Whirlipede": {
+    "numero": 544,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Scolipede": {
+    "numero": 545,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cottonee": {
+    "numero": 546,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Whimsicott": {
+    "numero": 547,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Petilil": {
+    "numero": 548,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lilligant": {
+    "numero": 549,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Basculin": {
+    "numero": 550,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sandile": {
+    "numero": 551,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Krokorok": {
+    "numero": 552,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Krookodile": {
+    "numero": 553,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Darumaka": {
+    "numero": 554,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Darmanitan": {
+    "numero": 555,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Maractus": {
+    "numero": 556,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dwebble": {
+    "numero": 557,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Crustle": {
+    "numero": 558,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Scraggy": {
+    "numero": 559,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Scrafty": {
+    "numero": 560,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sigilyph": {
+    "numero": 561,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Yamask": {
+    "numero": 562,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cofagrigus": {
+    "numero": 563,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tirtouga": {
+    "numero": 564,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Carracosta": {
+    "numero": 565,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Archen": {
+    "numero": 566,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Archeops": {
+    "numero": 567,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Trubbish": {
+    "numero": 568,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Garbodor": {
+    "numero": 569,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zorua": {
+    "numero": 570,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zoroark": {
+    "numero": 571,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Minccino": {
+    "numero": 572,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cinccino": {
+    "numero": 573,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gothita": {
+    "numero": 574,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gothorita": {
+    "numero": 575,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gothitelle": {
+    "numero": 576,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Solosis": {
+    "numero": 577,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Duosion": {
+    "numero": 578,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Reuniclus": {
+    "numero": 579,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ducklett": {
+    "numero": 580,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swanna": {
+    "numero": 581,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vanillite": {
+    "numero": 582,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vanillish": {
+    "numero": 583,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vanilluxe": {
+    "numero": 584,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Deerling": {
+    "numero": 585,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sawsbuck": {
+    "numero": 586,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Emolga": {
+    "numero": 587,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Karrablast": {
+    "numero": 588,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Escavalier": {
+    "numero": 589,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Foongus": {
+    "numero": 590,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Amoonguss": {
+    "numero": 591,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Frillish": {
+    "numero": 592,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jellicent": {
+    "numero": 593,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Alomomola": {
+    "numero": 594,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Joltik": {
+    "numero": 595,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Galvantula": {
+    "numero": 596,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ferroseed": {
+    "numero": 597,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ferrothorn": {
+    "numero": 598,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Klink": {
+    "numero": 599,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Klang": {
+    "numero": 600,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Klinklang": {
+    "numero": 601,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tynamo": {
+    "numero": 602,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Eelektrik": {
+    "numero": 603,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Eelektross": {
+    "numero": 604,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Elgyem": {
+    "numero": 605,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Beheeyem": {
+    "numero": 606,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Litwick": {
+    "numero": 607,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lampent": {
+    "numero": 608,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chandelure": {
+    "numero": 609,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Axew": {
+    "numero": 610,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Fraxure": {
+    "numero": 611,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Haxorus": {
+    "numero": 612,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cubchoo": {
+    "numero": 613,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Beartic": {
+    "numero": 614,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cryogonal": {
+    "numero": 615,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shelmet": {
+    "numero": 616,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Accelgor": {
+    "numero": 617,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Stunfisk": {
+    "numero": 618,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mienfoo": {
+    "numero": 619,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mienshao": {
+    "numero": 620,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Druddigon": {
+    "numero": 621,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Golett": {
+    "numero": 622,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Golurk": {
+    "numero": 623,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pawniard": {
+    "numero": 624,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bisharp": {
+    "numero": 625,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bouffalant": {
+    "numero": 626,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rufflet": {
+    "numero": 627,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Braviary": {
+    "numero": 628,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vullaby": {
+    "numero": 629,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mandibuzz": {
+    "numero": 630,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Heatmor": {
+    "numero": 631,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Durant": {
+    "numero": 632,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Deino": {
+    "numero": 633,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zweilous": {
+    "numero": 634,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hydreigon": {
+    "numero": 635,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Larvesta": {
+    "numero": 636,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Volcarona": {
+    "numero": 637,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cobalion ‡": {
+    "numero": 638,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Terrakion ‡": {
+    "numero": 639,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Virizion ‡": {
+    "numero": 640,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tornadus ‡": {
+    "numero": 641,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Thundurus ‡": {
+    "numero": 642,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Reshiram ‡": {
+    "numero": 643,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zekrom ‡": {
+    "numero": 644,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Landorus ‡": {
+    "numero": 645,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kyurem ‡": {
+    "numero": 646,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Keldeo": {
+    "numero": 647,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Meloetta": {
+    "numero": 648,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Genesect": {
+    "numero": 649,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chespin": {
+    "numero": 650,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Quilladin": {
+    "numero": 651,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Chesnaught": {
+    "numero": 652,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Fennekin": {
+    "numero": 653,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Braixen": {
+    "numero": 654,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Delphox": {
+    "numero": 655,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Froakie": {
+    "numero": 656,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Frogadier": {
+    "numero": 657,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Greninja": {
+    "numero": 658,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bunnelby": {
+    "numero": 659,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Diggersby": {
+    "numero": 660,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Fletchling": {
+    "numero": 661,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Fletchinder": {
+    "numero": 662,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Talonflame": {
+    "numero": 663,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Scatterbug": {
+    "numero": 664,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spewpa": {
+    "numero": 665,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vivillon": {
+    "numero": 666,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Litleo": {
+    "numero": 667,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pyroar": {
+    "numero": 668,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Flabébé": {
+    "numero": 669,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Floette": {
+    "numero": 670,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Florges": {
+    "numero": 671,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skiddo": {
+    "numero": 672,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gogoat": {
+    "numero": 673,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pancham": {
+    "numero": 674,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pangoro": {
+    "numero": 675,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Furfrou": {
+    "numero": 676,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Espurr": {
+    "numero": 677,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Meowstic": {
+    "numero": 678,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Honedge": {
+    "numero": 679,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Doublade": {
+    "numero": 680,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aegislash": {
+    "numero": 681,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Spritzee": {
+    "numero": 682,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aromatisse": {
+    "numero": 683,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Swirlix": {
+    "numero": 684,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Slurpuff": {
+    "numero": 685,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Inkay": {
+    "numero": 686,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Malamar": {
+    "numero": 687,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Binacle": {
+    "numero": 688,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Barbaracle": {
+    "numero": 689,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Skrelp": {
+    "numero": 690,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dragalge": {
+    "numero": 691,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Clauncher": {
+    "numero": 692,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Clawitzer": {
+    "numero": 693,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Helioptile": {
+    "numero": 694,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Heliolisk": {
+    "numero": 695,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tyrunt": {
+    "numero": 696,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tyrantrum": {
+    "numero": 697,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Amaura": {
+    "numero": 698,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Aurorus": {
+    "numero": 699,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sylveon": {
+    "numero": 700,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hawlucha": {
+    "numero": 701,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dedenne": {
+    "numero": 702,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Carbink": {
+    "numero": 703,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Goomy": {
+    "numero": 704,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sliggoo": {
+    "numero": 705,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Goodra": {
+    "numero": 706,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Klefki": {
+    "numero": 707,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Phantump": {
+    "numero": 708,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Trevenant": {
+    "numero": 709,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pumpkaboo": {
+    "numero": 710,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gourgeist": {
+    "numero": 711,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bergmite": {
+    "numero": 712,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Avalugg": {
+    "numero": 713,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Noibat": {
+    "numero": 714,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Noivern": {
+    "numero": 715,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Xerneas": {
+    "numero": 716,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Yveltal": {
+    "numero": 717,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zygarde": {
+    "numero": 718,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Diancie": {
+    "numero": 719,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hoopa": {
+    "numero": 720,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Volcanion": {
+    "numero": 721,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rowlet": {
+    "numero": 722,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dartrix": {
+    "numero": 723,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Decidueye": {
+    "numero": 724,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Litten": {
+    "numero": 725,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Torracat": {
+    "numero": 726,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Incineroar": {
+    "numero": 727,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Popplio": {
+    "numero": 728,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Brionne": {
+    "numero": 729,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Primarina": {
+    "numero": 730,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pikipek": {
+    "numero": 731,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Trumbeak": {
+    "numero": 732,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Toucannon": {
+    "numero": 733,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Yungoos": {
+    "numero": 734,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Gumshoos": {
+    "numero": 735,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Grubbin": {
+    "numero": 736,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Charjabug": {
+    "numero": 737,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Vikavolt": {
+    "numero": 738,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Crabrawler": {
+    "numero": 739,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Crabominable": {
+    "numero": 740,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Oricorio": {
+    "numero": 741,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cutiefly": {
+    "numero": 742,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Ribombee": {
+    "numero": 743,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Rockruff": {
+    "numero": 744,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lycanroc": {
+    "numero": 745,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wishiwashi": {
+    "numero": 746,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mareanie": {
+    "numero": 747,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Toxapex": {
+    "numero": 748,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mudbray": {
+    "numero": 749,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mudsdale": {
+    "numero": 750,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dewpider": {
+    "numero": 751,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Araquanid": {
+    "numero": 752,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Fomantis": {
+    "numero": 753,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lurantis": {
+    "numero": 754,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Morelull": {
+    "numero": 755,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Shiinotic": {
+    "numero": 756,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Salandit": {
+    "numero": 757,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Salazzle": {
+    "numero": 758,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Stufful": {
+    "numero": 759,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bewear": {
+    "numero": 760,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bounsweet": {
+    "numero": 761,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Steenee": {
+    "numero": 762,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tsareena": {
+    "numero": 763,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Comfey": {
+    "numero": 764,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Oranguru": {
+    "numero": 765,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Passimian": {
+    "numero": 766,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Wimpod": {
+    "numero": 767,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Golisopod": {
+    "numero": 768,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Sandygast": {
+    "numero": 769,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Palossand": {
+    "numero": 770,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pyukumuku": {
+    "numero": 771,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Type: Null": {
+    "numero": 772,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Silvally": {
+    "numero": 773,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Minior": {
+    "numero": 774,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Komala": {
+    "numero": 775,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Turtonator": {
+    "numero": 776,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Togedemaru": {
+    "numero": 777,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Mimikyu": {
+    "numero": 778,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Bruxish": {
+    "numero": 779,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Drampa": {
+    "numero": 780,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Dhelmise": {
+    "numero": 781,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Jangmo-o": {
+    "numero": 782,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Hakamo-o": {
+    "numero": 783,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kommo-o": {
+    "numero": 784,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tapu Koko": {
+    "numero": 785,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tapu Lele": {
+    "numero": 786,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tapu Bulu": {
+    "numero": 787,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Tapu Fini": {
+    "numero": 788,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cosmog": {
+    "numero": 789,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Cosmoem": {
+    "numero": 790,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Solgaleo": {
+    "numero": 791,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Lunala": {
+    "numero": 792,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Nihilego": {
+    "numero": 793,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Buzzwole": {
+    "numero": 794,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Pheromosa": {
+    "numero": 795,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Xurkitree": {
+    "numero": 796,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Celesteela": {
+    "numero": 797,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Kartana": {
+    "numero": 798,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Guzzlord": {
+    "numero": 799,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Necrozma": {
+    "numero": 800,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Magearna": {
+    "numero": 801,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Marshadow": {
+    "numero": 802,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Poipole": {
+    "numero": 803,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Naganadel": {
+    "numero": 804,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Stakataka": {
+    "numero": 805,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Blacephalon": {
+    "numero": 806,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Zeraora": {
+    "numero": 807,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Meltan": {
+    "numero": 808,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  },
+  "Melmetal": {
+    "numero": 809,
+    "tipos": [],
+    "movimentos_por_nivel": {}
+  }
+}

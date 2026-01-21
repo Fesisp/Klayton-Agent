@@ -1,0 +1,110 @@
+{
+  "Normal": {
+    "vantagens": [],
+    "fraquezas": ["Fighting"],
+    "resistencias": [],
+    "imunidades": ["Ghost"]
+  },
+  "Fire": {
+    "vantagens": ["Grass", "Ice", "Bug", "Steel"],
+    "fraquezas": ["Water", "Rock", "Ground"],
+    "resistencias": ["Fire", "Grass", "Ice", "Bug", "Steel", "Fairy"],
+    "imunidades": []
+  },
+  "Water": {
+    "vantagens": ["Fire", "Ground", "Rock"],
+    "fraquezas": ["Electric", "Grass"],
+    "resistencias": ["Fire", "Water", "Ice", "Steel"],
+    "imunidades": []
+  },
+  "Electric": {
+    "vantagens": ["Water", "Flying"],
+    "fraquezas": ["Ground"],
+    "resistencias": ["Electric", "Flying", "Steel"],
+    "imunidades": []
+  },
+  "Grass": {
+    "vantagens": ["Water", "Ground", "Rock"],
+    "fraquezas": ["Fire", "Ice", "Poison", "Flying", "Bug"],
+    "resistencias": ["Water", "Electric", "Grass", "Ground"],
+    "imunidades": []
+  },
+  "Ice": {
+    "vantagens": ["Grass", "Ground", "Flying", "Dragon"],
+    "fraquezas": ["Fire", "Fighting", "Rock", "Steel"],
+    "resistencias": ["Ice"],
+    "imunidades": []
+  },
+  "Fighting": {
+    "vantagens": ["Normal", "Ice", "Rock", "Dark", "Steel"],
+    "fraquezas": ["Flying", "Psychic", "Fairy"],
+    "resistencias": ["Bug", "Rock", "Dark"],
+    "imunidades": []
+  },
+  "Poison": {
+    "vantagens": ["Grass", "Fairy"],
+    "fraquezas": ["Ground", "Psychic"],
+    "resistencias": ["Grass", "Fighting", "Poison", "Bug", "Fairy"],
+    "imunidades": []
+  },
+  "Ground": {
+    "vantagens": ["Fire", "Electric", "Poison", "Rock", "Steel"],
+    "fraquezas": ["Water", "Grass", "Ice"],
+    "resistencias": ["Poison", "Rock"],
+    "imunidades": ["Electric"]
+  },
+  "Flying": {
+    "vantagens": ["Grass", "Fighting", "Bug"],
+    "fraquezas": ["Electric", "Ice", "Rock"],
+    "resistencias": ["Grass", "Fighting", "Bug"],
+    "imunidades": ["Ground"]
+  },
+  "Psychic": {
+    "vantagens": ["Fighting", "Poison"],
+    "fraquezas": ["Bug", "Ghost", "Dark"],
+    "resistencias": ["Fighting", "Psychic"],
+    "imunidades": []
+  },
+  "Bug": {
+    "vantagens": ["Grass", "Psychic", "Dark"],
+    "fraquezas": ["Fire", "Flying", "Rock"],
+    "resistencias": ["Grass", "Fighting", "Ground"],
+    "imunidades": []
+  },
+  "Rock": {
+    "vantagens": ["Fire", "Ice", "Flying", "Bug"],
+    "fraquezas": ["Water", "Grass", "Fighting", "Ground", "Steel"],
+    "resistencias": ["Normal", "Fire", "Poison", "Flying"],
+    "imunidades": []
+  },
+  "Ghost": {
+    "vantagens": ["Psychic", "Ghost"],
+    "fraquezas": ["Ghost", "Dark"],
+    "resistencias": ["Poison", "Bug"],
+    "imunidades": ["Normal", "Fighting"]
+  },
+  "Dragon": {
+    "vantagens": ["Dragon"],
+    "fraquezas": ["Ice", "Dragon", "Fairy"],
+    "resistencias": ["Fire", "Water", "Electric", "Grass"],
+    "imunidades": []
+  },
+  "Dark": {
+    "vantagens": ["Psychic", "Ghost"],
+    "fraquezas": ["Fighting", "Bug", "Fairy"],
+    "resistencias": ["Ghost", "Dark"],
+    "imunidades": ["Psychic"]
+  },
+  "Steel": {
+    "vantagens": ["Ice", "Rock", "Fairy"],
+    "fraquezas": ["Fire", "Fighting", "Ground"],
+    "resistencias": ["Normal", "Grass", "Ice", "Flying", "Psychic", "Bug", "Rock", "Dragon", "Steel", "Fairy"],
+    "imunidades": ["Poison"]
+  },
+  "Fairy": {
+    "vantagens": ["Fighting", "Dragon", "Dark"],
+    "fraquezas": ["Poison", "Steel"],
+    "resistencias": ["Fighting", "Bug", "Dark"],
+    "imunidades": ["Dragon"]
+  }
+}
