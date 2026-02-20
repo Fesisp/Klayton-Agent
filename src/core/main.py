@@ -15,6 +15,8 @@ from src.knowledge.pokemon_database import PokemonDatabase
 from src.knowledge.team_manager import TeamManager
 from src.decision.battle_strategy import BattleStrategy
 from src.core.bot_controller import BotController
+from src.core.hotkey_listener import HotkeyManager
+from src.core.udp_receiver import create_udp_receiver
 
 def load_config():
     config_path = ROOT_DIR / 'config' / 'settings.yaml'
@@ -69,7 +71,39 @@ def main():
         }
         
         bot = BotController(config, components)
+        
+        # Inicializa hotkey listener se habilitado
+        hotkey_listener = None
+        if config.get('controls', {}).get('enabled', True):
+            try:
+                hotkey_listener = HotkeyManager.create_and_start(bot, config)
+                logger.success("✅ Hotkey listener ativo! Pressione as teclas para controlar o bot.")
+            except Exception as e:
+                logger.error(f"Erro ao iniciar hotkey listener: {e}")
+                logger.warning("Bot continuará sem controles por hotkey")
+        
+        # Inicializa receptor UDP para controle remoto (se habilitado)
+        udp_receiver = None
+        if config.get('remote_control', {}).get('enabled', False):
+            try:
+                udp_receiver = create_udp_receiver(bot, config)
+                if udp_receiver:
+                    udp_receiver.start()
+                    logger.success("✅ Controle remoto UDP ativo! Use remote_controller.py na máquina host.")
+            except Exception as e:
+                logger.error(f"Erro ao iniciar controle remoto UDP: {e}")
+                logger.warning("Bot continuará sem controle remoto")
+        
+        # Executa o bot
         bot.run()
+        
+        # Cleanup
+        if hotkey_listener:
+            hotkey_listener.stop()
+        
+        if udp_receiver:
+            udp_receiver.stop()
+            
     except Exception as e:
         logger.exception(f"Fatal error in main loop: {e}")
         input("Press Enter to exit...")

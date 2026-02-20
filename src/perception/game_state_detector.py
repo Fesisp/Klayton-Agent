@@ -101,7 +101,7 @@ class GameStateDetector:
         return False
 
     def get_battle_info(self, image):
-        """Extrai nome do inimigo, nome do player e (futuro) HP."""
+        """Extrai nome do inimigo, nome do player e HP."""
         # Nome do inimigo
         enemy_name_img = crop_roi_safe(image, self.rois.get('enemy_name'))
         enemy_name_raw = self.ocr.extract_text_optimized(
@@ -119,9 +119,101 @@ class GameStateDetector:
             invert_for_white_text=True,
         )
         player_name = player_name_raw.replace("Lv", "").strip()
+        
+        # Detectar HP do player (porcentagem baseada em cor da barra)
+        player_hp_percentage = self._get_hp_percentage(image, 'player_hp_bar')
+        
+        # Detectar HP do inimigo (porcentagem baseada em cor da barra)
+        enemy_hp_percentage = self._get_hp_percentage(image, 'enemy_hp_bar')
 
         return {
             "enemy_name": enemy_name,
             "player_name": player_name,
-            # Adicionar leitura de HP e Level aqui usando as ROIs
+            "player_hp_percentage": player_hp_percentage,
+            "enemy_hp_percentage": enemy_hp_percentage,
+            "player_hp_critical": player_hp_percentage < 25 if player_hp_percentage is not None else False,
+            "player_hp_low": player_hp_percentage < 50 if player_hp_percentage is not None else False,
         }
+    
+    def _get_hp_percentage(self, image, hp_bar_roi_key):
+        """
+        Calcula a porcentagem de HP baseado na cor da barra de HP.
+        
+        Args:
+            image: Imagem da tela
+            hp_bar_roi_key: Chave da ROI no config (ex: 'player_hp_bar' ou 'enemy_hp_bar')
+            
+        Returns:
+            Porcentagem de HP (0-100) ou None se ROI não existir
+        """
+        hp_roi = self.rois.get(hp_bar_roi_key)
+        if not hp_roi:
+            return None
+        
+        hp_bar_img = crop_roi_safe(image, hp_roi)
+        if hp_bar_img is None or hp_bar_img.size == 0:
+            return None
+        
+        # Converter para HSV para melhor detecção de cor
+        hsv = cv2.cvtColor(hp_bar_img, cv2.COLOR_BGR2HSV)
+        
+        # Definir ranges de cor para HP (verde, amarelo, vermelho)
+        # Verde: HP alto (> 50%)
+        lower_green = np.array([40, 50, 50])
+        upper_green = np.array([80, 255, 255])
+        
+        # Amarelo: HP médio (25-50%)
+        lower_yellow = np.array([20, 50, 50])
+        upper_yellow = np.array([40, 255, 255])
+        
+        # Vermelho: HP baixo (< 25%)
+        lower_red1 = np.array([0, 50, 50])
+        upper_red1 = np.array([10, 255, 255])
+        lower_red2 = np.array([170, 50, 50])
+        upper_red2 = np.array([180, 255, 255])
+        
+        # Criar máscaras
+        mask_green = cv2.inRange(hsv, lower_green, upper_green)
+        mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
+        mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
+        mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+        
+        # Contar pixels de cada cor
+        green_pixels = cv2.countNonZero(mask_green)
+        yellow_pixels = cv2.countNonZero(mask_yellow)
+        red_pixels = cv2.countNonZero(mask_red)
+        
+        total_colored_pixels = green_pixels + yellow_pixels + red_pixels
+        
+        if total_colored_pixels == 0:
+            return None
+        
+        # Calcular largura da barra preenchida
+        # Assume que a barra é horizontal
+        height, width = hp_bar_img.shape[:2]
+        
+        # Encontrar a largura efetiva da cor (do lado esquerdo)
+        combined_mask = cv2.bitwise_or(mask_green, cv2.bitwise_or(mask_yellow, mask_red))
+        
+        # Procurar a coluna mais à direita com pixels coloridos
+        rightmost_col = 0
+        for col in range(width):
+            if np.any(combined_mask[:, col]):
+                rightmost_col = col
+        
+        # Calcular porcentagem
+        percentage = (rightmost_col / width) * 100
+        
+        # Ajustar baseado na cor predominante para maior precisão
+        if green_pixels > yellow_pixels and green_pixels > red_pixels:
+            # HP alto: 50-100%
+            percentage = max(50, percentage)
+        elif yellow_pixels > green_pixels and yellow_pixels > red_pixels:
+            # HP médio: 25-50%
+            percentage = max(25, min(50, percentage))
+        elif red_pixels > 0:
+            # HP baixo: 0-25%
+            percentage = min(25, percentage)
+        
+        return round(percentage, 1)

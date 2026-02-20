@@ -5,3 +5,6 @@ mss
 pyautogui
 pyyaml
 loguru
+scipy
+requests
+pynput
