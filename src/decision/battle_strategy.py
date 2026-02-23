@@ -243,6 +243,127 @@ class BattleStrategy:
         
         return max_damage_ratio
     
+    def calculate_perfect_damage(self, enemy_name, enemy_level, my_poke):
+        """Calcula o dano PERFEITO considerando Burn, Itens e Status.
+        
+        Versão aprimorada que integra:
+        - Burn reduzindo ataque físico em 50%
+        - Inferência de itens (Choice Band/Specs, Life Orb)
+        - STAB e type effectiveness
+        - Seleção correta de stats ofensivos/defensivos
+        
+        Args:
+            enemy_name: Nome do Pokémon inimigo
+            enemy_level: Nível do inimigo
+            my_poke: Nome do meu Pokémon
+            
+        Returns:
+            float: Dano máximo em HP absoluto
+        """
+        # Obter stats estimados do inimigo (pior cenário)
+        enemy_base_stats = self.db.get_base_stats(enemy_name)
+        if not enemy_base_stats:
+            logger.warning(f"Stats de {enemy_name} não encontrados")
+            return 0.0
+        
+        enemy_stats = {
+            'attack': self.db.estimate_stat(enemy_base_stats['attack'], enemy_level, iv=31, ev=252, nature=1.1),
+            'sp_attack': self.db.estimate_stat(enemy_base_stats['special_attack'], enemy_level, iv=31, ev=252, nature=1.1),
+            'defense': self.db.estimate_stat(enemy_base_stats['defense'], enemy_level, iv=31, ev=252, nature=1.1),
+            'sp_defense': self.db.estimate_stat(enemy_base_stats['special_defense'], enemy_level, iv=31, ev=252, nature=1.1),
+        }
+        
+        my_stats = self.tm.get_stats(my_poke)
+        if not my_stats:
+            logger.warning(f"Stats de {my_poke} não encontrados")
+            return 0.0
+        
+        # --- AJUSTE DE STATUS NO INIMIGO ---
+        enemy_status = self.tm.get_status(enemy_name)
+        atk_mod = 0.5 if enemy_status == "BURN" else 1.0  # Burn corta Atk Físico em 50%
+        
+        if enemy_status == "BURN":
+            logger.info(f"🔥 {enemy_name} queimado - Ataque físico reduzido 50%")
+        
+        max_damage = 0.0
+        best_move = ""
+        
+        # Analisa todos os golpes prováveis
+        possible_moves = self.db.get_common_moves(enemy_name)
+        
+        for move_name in possible_moves:
+            move_data = self.db.get_move_data(move_name)
+            if not move_data:
+                continue
+            
+            power = float(move_data.get('power', 0) or 0)
+            if power == 0:
+                continue  # Ignora movimentos de status
+            
+            # Determina categoria (físico vs especial)
+            category_id = str(move_data.get('category_id', '1'))
+            is_special = category_id == '2'
+            category_name = 'special' if is_special else 'physical'
+            
+            # --- SELEÇÃO DE STATS CORRETA ---
+            if is_special:
+                atk = enemy_stats['sp_attack']  # Especial não é afetado por Burn
+                defn = my_stats['special_defense']
+            else:
+                atk = enemy_stats['attack'] * atk_mod  # Físico afetado por Burn
+                defn = my_stats['defense']
+            
+            # --- FÓRMULA DE DANO REAL (GAME FREAK) ---
+            damage = (((2 * enemy_level / 5 + 2) * power * atk / defn) / 50 + 2)
+            
+            # --- MULTIPLICADORES (STAB + TIPAGEM) ---
+            enemy_types = self.db.get_pokemon_types(enemy_name)
+            my_types = self.db.get_pokemon_types(my_poke)
+            move_type = move_data.get('type_id')
+            
+            # STAB (Same Type Attack Bonus)
+            stab = 1.5 if move_type in enemy_types else 1.0
+            
+            # Type Effectiveness
+            type_mult = self.db.get_type_multiplier(move_type, my_types)
+            
+            # Dano com STAB e type
+            final_damage = damage * stab * type_mult
+            
+            # --- INFERÊNCIA DE ITEM ---
+            inferred_item = self.tm.get_inferred_item(enemy_name)
+            
+            if inferred_item == "CHOICE_BAND" and not is_special:
+                final_damage *= 1.5
+                if self.debug:
+                    logger.debug(f"📦 Choice Band inferido - Dano físico +50%")
+            elif inferred_item == "CHOICE_SPECS" and is_special:
+                final_damage *= 1.5
+                if self.debug:
+                    logger.debug(f"📦 Choice Specs inferido - Dano especial +50%")
+            elif inferred_item == "LIFE_ORB":
+                final_damage *= 1.3
+                if self.debug:
+                    logger.debug(f"📦 Life Orb inferido - Dano +30%")
+            
+            if final_damage > max_damage:
+                max_damage = final_damage
+                best_move = move_name
+                
+                if self.debug:
+                    logger.debug(
+                        f"💥 {move_name} ({category_name}): {final_damage:.1f} dmg "
+                        f"[Pwr={power}, STAB={stab}, Type={type_mult}, Status={atk_mod}]"
+                    )
+        
+        if best_move:
+            logger.info(
+                f"🎯 Dano perfeito de {enemy_name}: {max_damage:.1f} HP "
+                f"(Melhor golpe: {best_move})"
+            )
+        
+        return max_damage
+    
     def calculate_move_damage(self, attacker_poke, move_name, defender_poke, is_attacker_player=False):
         """Calcula dano de um golpe específico.
         
@@ -472,6 +593,114 @@ class BattleStrategy:
                 return "RISK_ACCEPTABLE"
         
         return "OK"
+    
+    def evaluate_best_move(self, my_poke, enemy_poke):
+        """Decisão avançada integrando Sleep, Priority Awareness e Speed Tiering.
+        
+        Pipeline completo:
+        1. Gestão de Sleep (se dormindo e vulnerável, trocar)
+        2. Cálculo de velocidade efetiva (considera paralisia)
+        3. Priority Awareness (mesmo rápido, inimigo pode ter priority)
+        4. Decisão final: sobrevivência vs ataque
+        
+        Args:
+            my_poke: Nome do meu Pokémon
+            enemy_poke: Nome do Pokémon inimigo
+            
+        Returns:
+            str: "SWITCH_PRIORITY", "SWITCH_ACTION", "OPTIMAL_ATTACK"
+        """
+        # Obter HP atual
+        my_hp = 0.5
+        if self.detector:
+            detected_hp = self.detector.get_hp_ratio(
+                self.detector.cap.capture(), 'player'
+            )
+            if detected_hp is not None:
+                my_hp = detected_hp
+        
+        # Calcular dano que vou receber (versão perfeita)
+        incoming_dmg_raw = self.calculate_perfect_damage(
+            enemy_poke, self.current_enemy_level, my_poke
+        )
+        
+        # Converte para razão
+        my_stats = self.tm.get_stats(my_poke)
+        my_max_hp = my_stats.get('hp', 100) if my_stats else 100
+        incoming_dmg_ratio = incoming_dmg_raw / my_max_hp
+        
+        logger.info(
+            f"🧠 Evaluate Best Move: HP={my_hp*100:.0f}%, "
+            f"Dano esperado={incoming_dmg_ratio*100:.0f}%"
+        )
+        
+        # --- 1. GESTÃO DE SLEEP (SONO) ---
+        my_status = self.tm.get_status(my_poke)
+        if my_status == "SLEEP":
+            # Se estou dormindo e o inimigo tira >30% de dano: TROCAR
+            if incoming_dmg_ratio > 0.3:
+                logger.critical(
+                    f"😴 DORMINDO + DANO ALTO ({incoming_dmg_ratio*100:.0f}%) - "
+                    f"RISCO DE SETUP!"
+                )
+                return "SWITCH_PRIORITY"
+            
+            # TODO: Detectar enemy buffing (Swords Dance, Dragon Dance)
+            # if self.detector.detect_enemy_buffing():
+            #     return "SWITCH_PRIORITY"
+        
+        # --- 2. CÁLCULO DE VELOCIDADE (SPEED TIERING) ---
+        # Considera 50% de redução se paralisado
+        my_speed = self.get_effective_speed(my_poke, is_player=True)
+        enemy_speed = self.get_effective_speed(enemy_poke, is_player=False)
+        
+        logger.info(
+            f"⚡ Speed: Meu={my_speed} vs Inimigo={enemy_speed} "
+            f"({'Mais rápido' if my_speed > enemy_speed else 'Mais lento'})"
+        )
+        
+        # --- 3. PRIORITY AWARENESS ---
+        # Mesmo se eu for mais rápido, ele pode me matar com Quick Attack?
+        has_priority_risk = False
+        
+        # Verifica se inimigo tem priority moves
+        enemy_priority_moves = self.db.get_priority_moves(enemy_poke)
+        if enemy_priority_moves:
+            # Estima dano de priority (geralmente ~40% do dano normal)
+            priority_dmg_estimate = incoming_dmg_ratio * 0.4
+            
+            if priority_dmg_estimate >= my_hp:
+                has_priority_risk = True
+                logger.warning(
+                    f"⚡ PRIORITY RISK: {enemy_poke} pode ter {enemy_priority_moves[0]} "
+                    f"(dano estimado {priority_dmg_estimate*100:.0f}% vs HP {my_hp*100:.0f}%)"
+                )
+        
+        # --- 4. DECISÃO FINAL: SOBREVIVÊNCIA VS ATAQUE ---
+        i_act_first = my_speed > enemy_speed and not has_priority_risk
+        
+        # Se eu não ajo primeiro e vou morrer
+        if not i_act_first and incoming_dmg_ratio >= my_hp:
+            logger.critical(
+                f"💀 MORTE IMINENTE: Não ajo primeiro e dano é letal "
+                f"({incoming_dmg_ratio*100:.0f}% >= {my_hp*100:.0f}%)"
+            )
+            
+            # Verifica se posso matar com priority antes
+            if self.can_kill_with_priority(my_poke, enemy_poke):
+                logger.info(
+                    f"⚡ CONTRA-ATAQUE VIÁVEL: Posso matar com priority!"
+                )
+                return "OPTIMAL_ATTACK"  # Mata com priority
+            else:
+                logger.critical(
+                    f"🔄 SEM CONTRA-ATAQUE: Trocar Pokémon"
+                )
+                return "SWITCH_ACTION"
+        
+        # Se chegou aqui, é seguro atacar
+        logger.info(f"⚔️ Situação controlada - Ataque ótimo")
+        return "OPTIMAL_ATTACK"
     
     def evaluate_risk_reward(self, my_poke, enemy_poke):
         """Julga se vale a pena atacar, curar ou trocar/fugir.

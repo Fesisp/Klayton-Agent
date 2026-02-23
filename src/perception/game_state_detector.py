@@ -40,6 +40,56 @@ class GameStateDetector:
             'run': cv2.imread(run_path),
         }
 
+    def find_player_name(self, frame, nickname):
+        """
+        Procura o nickname de um jogador no frame usando template matching ou OCR.
+        
+        Args:
+            frame: Frame capturado da tela
+            nickname: Nome do jogador a ser procurado
+            
+        Returns:
+            tuple: (x, y) coordenadas do centro do nome encontrado, ou None se não encontrado
+        """
+        import pytesseract
+        
+        # 1. Tenta template matching se houver template do nome
+        template_path = os.path.join('assets', 'templates', f'name_{nickname.lower()}.png')
+        if os.path.exists(template_path):
+            template = cv2.imread(template_path)
+            result = cv2.matchTemplate(frame, template, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+            
+            if max_val > 0.8:  # 80% de confiança
+                h, w = template.shape[:2]
+                center_x = max_loc[0] + w // 2
+                center_y = max_loc[1] + h // 2
+                return (center_x, center_y)
+        
+        # 2. Fallback: OCR na região central onde nomes flutuantes aparecem
+        h, w = frame.shape[:2]
+        roi = frame[int(h*0.3):int(h*0.6), int(w*0.3):int(w*0.7)]
+        
+        # Preprocessamento para OCR
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+        
+        # OCR
+        text = pytesseract.image_to_string(thresh, config='--psm 11')
+        
+        # Procura o nickname no texto extraído
+        if nickname.lower() in text.lower():
+            # Tenta pegar posição mais precisa com image_to_boxes
+            boxes = pytesseract.image_to_boxes(thresh)
+            for box in boxes.splitlines():
+                parts = box.split()
+                if len(parts) >= 5 and parts[0].lower() in nickname.lower():
+                    x = int(parts[1]) + int(w*0.3)
+                    y = h - int(parts[2]) + int(h*0.3)  # Ajuste de coordenada Y
+                    return (x, y)
+        
+        return None
+
     def detect_state(self, image):
         # 1. Verifica SHINY (Prioridade Absoluta)
         if self._detect_shiny(image):
