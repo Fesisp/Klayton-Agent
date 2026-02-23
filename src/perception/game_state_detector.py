@@ -111,6 +111,16 @@ class GameStateDetector:
         )
         enemy_name = enemy_name_raw.replace("Lv", "").strip()
 
+        # Nível do inimigo (se disponível)
+        enemy_level_img = crop_roi_safe(image, self.rois.get('enemy_level'))
+        enemy_level_raw = self.ocr.extract_text_optimized(
+            enemy_level_img,
+            whitelist="0123456789",
+            invert_for_white_text=True,
+        )
+        enemy_level_digits = "".join([c for c in enemy_level_raw if c.isdigit()])
+        enemy_level = int(enemy_level_digits) if enemy_level_digits else None
+
         # Nome do Pokémon do player (HUD)
         player_name_img = crop_roi_safe(image, self.rois.get('player_name'))
         player_name_raw = self.ocr.extract_text_optimized(
@@ -128,6 +138,7 @@ class GameStateDetector:
 
         return {
             "enemy_name": enemy_name,
+            "enemy_level": enemy_level,
             "player_name": player_name,
             "player_hp_percentage": player_hp_percentage,
             "enemy_hp_percentage": enemy_hp_percentage,
@@ -135,18 +146,22 @@ class GameStateDetector:
             "player_hp_low": player_hp_percentage < 50 if player_hp_percentage is not None else False,
         }
     
-    def _get_hp_percentage(self, image, hp_bar_roi_key):
+    def get_hp_ratio(self, image, side='player'):
         """
-        Calcula a porcentagem de HP baseado na cor da barra de HP.
+        Calcula a razão de HP (0.0 a 1.0) baseado na proporção de pixels coloridos na barra de HP.
+        Método mais rápido e confiável que OCR.
         
         Args:
-            image: Imagem da tela
-            hp_bar_roi_key: Chave da ROI no config (ex: 'player_hp_bar' ou 'enemy_hp_bar')
+            image: Imagem da tela completa
+            side: 'player' ou 'enemy'
             
         Returns:
-            Porcentagem de HP (0-100) ou None se ROI não existir
+            float: Razão de HP (0.0 a 1.0) ou None se ROI não existir
         """
-        hp_roi = self.rois.get(hp_bar_roi_key)
+        # Determina qual ROI usar
+        roi_key = f'hp_{side}' if side in ['player', 'enemy'] else f'{side}_hp_bar'
+        hp_roi = self.rois.get(roi_key)
+        
         if not hp_roi:
             return None
         
@@ -157,19 +172,19 @@ class GameStateDetector:
         # Converter para HSV para melhor detecção de cor
         hsv = cv2.cvtColor(hp_bar_img, cv2.COLOR_BGR2HSV)
         
-        # Definir ranges de cor para HP (verde, amarelo, vermelho)
-        # Verde: HP alto (> 50%)
-        lower_green = np.array([40, 50, 50])
-        upper_green = np.array([80, 255, 255])
+        # Ranges de cor para HP (verde, amarelo, vermelho)
+        # Verde: HP alto
+        lower_green = np.array([40, 40, 40])
+        upper_green = np.array([85, 255, 255])
         
-        # Amarelo: HP médio (25-50%)
-        lower_yellow = np.array([20, 50, 50])
+        # Amarelo: HP médio
+        lower_yellow = np.array([15, 40, 40])
         upper_yellow = np.array([40, 255, 255])
         
-        # Vermelho: HP baixo (< 25%)
-        lower_red1 = np.array([0, 50, 50])
-        upper_red1 = np.array([10, 255, 255])
-        lower_red2 = np.array([170, 50, 50])
+        # Vermelho: HP baixo (precisa de 2 ranges devido ao wrap do hue)
+        lower_red1 = np.array([0, 40, 40])
+        upper_red1 = np.array([15, 255, 255])
+        lower_red2 = np.array([165, 40, 40])
         upper_red2 = np.array([180, 255, 255])
         
         # Criar máscaras
@@ -179,41 +194,111 @@ class GameStateDetector:
         mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
         mask_red = cv2.bitwise_or(mask_red1, mask_red2)
         
-        # Contar pixels de cada cor
-        green_pixels = cv2.countNonZero(mask_green)
-        yellow_pixels = cv2.countNonZero(mask_yellow)
-        red_pixels = cv2.countNonZero(mask_red)
-        
-        total_colored_pixels = green_pixels + yellow_pixels + red_pixels
-        
-        if total_colored_pixels == 0:
-            return None
-        
-        # Calcular largura da barra preenchida
-        # Assume que a barra é horizontal
-        height, width = hp_bar_img.shape[:2]
-        
-        # Encontrar a largura efetiva da cor (do lado esquerdo)
+        # Combinar todas as máscaras (qualquer cor de HP)
         combined_mask = cv2.bitwise_or(mask_green, cv2.bitwise_or(mask_yellow, mask_red))
         
-        # Procurar a coluna mais à direita com pixels coloridos
-        rightmost_col = 0
-        for col in range(width):
-            if np.any(combined_mask[:, col]):
-                rightmost_col = col
+        # Contar colunas com pixels de HP (proporção da largura)
+        columns_with_hp = np.any(combined_mask, axis=0)
+        total_hp_pixels = int(np.count_nonzero(columns_with_hp))
+
+        # Largura da barra = máximo de pixels possível
+        _, width = hp_bar_img.shape[:2]
+
+        # Calcular razão (0.0 a 1.0) baseado em contagem de colunas
+        hp_ratio = total_hp_pixels / width if width > 0 else 0.0
         
-        # Calcular porcentagem
-        percentage = (rightmost_col / width) * 100
+        # Clamp entre 0 e 1
+        hp_ratio = max(0.0, min(1.0, hp_ratio))
         
-        # Ajustar baseado na cor predominante para maior precisão
-        if green_pixels > yellow_pixels and green_pixels > red_pixels:
-            # HP alto: 50-100%
-            percentage = max(50, percentage)
-        elif yellow_pixels > green_pixels and yellow_pixels > red_pixels:
-            # HP médio: 25-50%
-            percentage = max(25, min(50, percentage))
-        elif red_pixels > 0:
-            # HP baixo: 0-25%
-            percentage = min(25, percentage)
+        return hp_ratio
+    
+    def _get_hp_percentage(self, image, hp_bar_roi_key):
+        """
+        Calcula a porcentagem de HP baseado na cor da barra de HP.
+        Wrapper para get_hp_ratio que retorna porcentagem (0-100).
+        
+        Args:
+            image: Imagem da tela
+            hp_bar_roi_key: Chave da ROI no config (ex: 'player_hp_bar' ou 'enemy_hp_bar')
+            
+        Returns:
+            Porcentagem de HP (0-100) ou None se ROI não existir
+        """
+        # Extrai 'player' ou 'enemy' do nome da chave
+        if 'player' in hp_bar_roi_key:
+            side = 'player'
+        elif 'enemy' in hp_bar_roi_key:
+            side = 'enemy'
+        else:
+            # Fallback para método antigo se não reconhecer
+            return None
+        
+        hp_ratio = self.get_hp_ratio(image, side)
+        if hp_ratio is None:
+            return None
+        
+        # Converter razão para porcentagem
+        percentage = hp_ratio * 100
         
         return round(percentage, 1)
+    
+    def find_player_name(self, image, player_name):
+        """
+        Localiza o nome do jogador principal na tela usando OCR.
+        Útil para o modo FOLLOW onde o bot precisa seguir outro personagem.
+        
+        Args:
+            image: Imagem da tela completa
+            player_name: Nome do jogador a procurar (ex: "FelipeSpinola")
+            
+        Returns:
+            tuple: (x, y) posição central do nome encontrado, ou None se não encontrado
+        """
+        if not player_name:
+            return None
+        
+        # Configurações de busca
+        follow_cfg = self.cfg.get('follow_settings', {})
+        min_confidence = float(follow_cfg.get('min_confidence', 0.7))
+        
+        # ROI de busca (área ao redor do centro da tela)
+        # Foca na área onde o personagem estaria visível
+        screen_h, screen_w = image.shape[:2]
+        search_margin = 400  # pixels ao redor do centro
+        
+        x1 = max(0, (screen_w // 2) - search_margin)
+        y1 = max(0, (screen_h // 2) - search_margin)
+        x2 = min(screen_w, (screen_w // 2) + search_margin)
+        y2 = min(screen_h, (screen_h // 2) + search_margin)
+        
+        search_area = image[y1:y2, x1:x2]
+        
+        # Tenta detectar texto na área de busca
+        try:
+            # Extrai todo o texto da área
+            text = self.ocr.extract_text_optimized(
+                search_area,
+                whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0-9 ",
+                invert_for_white_text=True
+            )
+            
+            # Verifica se o nome do jogador está no texto detectado
+            text_lower = text.lower()
+            player_name_lower = player_name.lower()
+            
+            if player_name_lower in text_lower:
+                # Nome encontrado! Agora precisa localizar coordenadas exatas
+                # Para simplicidade, retorna centro da área de busca
+                # TODO: Implementar localização precisa usando pytesseract.image_to_data
+                
+                center_x = x1 + (x2 - x1) // 2
+                center_y = y1 + (y2 - y1) // 2
+                
+                logger.debug(f"[FOLLOW] Nome '{player_name}' detectado próximo a ({center_x}, {center_y})")
+                return (center_x, center_y)
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Erro ao procurar nome do jogador: {e}")
+            return None

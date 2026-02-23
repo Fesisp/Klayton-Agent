@@ -55,13 +55,47 @@ An advanced, autonomous bot for Tibianic-like Pokémon MMORPGs, built with **Pyt
     *   Configurable distance and detection thresholds
 *   **30-60x Faster**: Change modes in ~1 second vs ~30-60 seconds before!
 
-### 🌐 Remote Control via UDP (v2.3) ⭐ NEW!
+### 🌐 Remote Control via UDP (v2.3)
 *   **VM Control**: Control bot running in VM from your physical machine
 *   **Ultra-Low Latency**: 1-5ms response time (UDP protocol)
 *   **No RDP Required**: Send commands without opening VM console
 *   **Multi-VM Support**: Control multiple VMs simultaneously from one host
 *   **Simple Setup**: Just open 1 UDP port and configure IP
 *   **Background Operation**: Works even when VM is minimized
+
+### 🧠 Advanced AI & Follow Intelligence (v2.4)
+*   **Dynamic HP Detection**: 
+    *   Color-based HP analysis (HSV color space)
+    *   **10-40x faster** than OCR (5-10ms vs 50-200ms)
+    *   Detects green/yellow/red HP bars
+*   **Persistent Follow Mode**:
+    *   **OCR Name Tracking**: Finds player by in-game username
+    *   **Memory System**: Remembers last seen position (5s timeout)
+    *   **Recovery Search**: Automatically rotates camera/moves to reacquire lost targets
+    *   **Smart Movement**: 70% proportional movement prevents vibration
+*   **Battle Intelligence**:
+    *   HP-based healing decisions (< 25% HP)
+    *   Automatic Pokémon switching when HP critical
+    *   Type advantage calculations with STAB bonus
+
+### ⚔️ Advanced Battle Engine (v2.5) ⭐ NEW!
+*   **Risk/Reward Analysis**:
+    *   Projects next turn to prevent suicidal plays
+    *   Calculates if you'll survive before attacking
+    *   Smart healing: only heals when safe
+*   **Damage Prediction System**:
+    *   Estimates incoming enemy damage
+    *   Factors type effectiveness & enemy items
+    *   Auto-switches when death is imminent
+*   **Item Inference (AI)**:
+    *   **Detects Choice Scarf** automatically (speed-based)
+    *   **Detects Choice Band/Life Orb** (damage-based)
+    *   Adjusts strategy mid-battle based on inference
+*   **Speed Tier Calculations**:
+    *   Real Pokémon formula (IVs, EVs, Nature)
+    *   Predicts who attacks first
+    *   Considers worst-case scenarios
+
 
 ## 🛠️ Technologies
 
@@ -182,11 +216,15 @@ bot:
 - **[🚀 Hotkey Quick Setup](docs/QUICK_SETUP_HOTKEYS.md)** - Get started with hotkeys in 5 minutes
 - **[🎮 Hotkey System Guide](docs/HOTKEY_SYSTEM.md)** - Complete hotkey documentation
 - **[🌐 Remote Control UDP](docs/REMOTE_CONTROL_UDP.md)** - Control bot in VM from host machine
+- **[🧠 Follow Mode Guide](docs/FOLLOW_MODE_GUIDE.md)** - Advanced FOLLOW with memory and AI
+- **[⚔️ Advanced Battle Engine](docs/ADVANCED_BATTLE_ENGINE.md)** - Risk calculation & damage prediction ⭐ NEW!
+- **[📋 Changelog v2.4](docs/CHANGELOG_v2.4.md)** - What's new in v2.4
 - **[Quick Start Guide](docs/QUICK_START.md)** - Installation and setup
 - **[Modes Guide](docs/MODES_QUICK_GUIDE.md)** - How to use IDLE/MISSION/HUNTING/FOLLOW
 - **[State Machine](docs/STATE_MACHINE.md)** - Technical architecture
 - **[Humanization Features](docs/HUMANIZATION_FEATURES.md)** - Anti-detection features
 - **[Changelog](docs/CHANGELOG.md)** - Version history and updates
+
 
 ## 📂 Project Structure
 

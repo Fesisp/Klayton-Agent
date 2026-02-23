@@ -1,8 +1,11 @@
 # Visão Geral do Projeto PokeBot-Pro
 
+**Versão Atual:** v2.5 (Real Damage Calculation System)  
+**Última Atualização:** 2025
+
 ## Visão Geral
 
-- **Propósito:** `PokeBot-Pro` é um bot para o MMORPG Pokémon (Tibianic-like) que joga “sozinho”: segue missões (Goto), conversa com NPCs, entra em batalhas, luta de forma minimamente inteligente, detecta shinies e para o jogo para você capturar.
+- **Propósito:** `PokeBot-Pro` é um bot para o MMORPG Pokémon (Tibianic-like) que joga "sozinho": segue missões (Goto), conversa com NPCs, entra em batalhas, luta de forma minimamente inteligente, detecta shinies e para o jogo para você capturar.
 - **Arquitetura:** Python + OpenCV + Tesseract + automação de mouse/teclado. Toda lógica de jogo é separada em módulos: captura de tela, percepção (OCR/detecção de estado), decisão, ação (inputs) e conhecimento (time, movimentos, tipos, etc.), configurados via `settings.yaml`.
 
 ## Fluxo de Execução Atual

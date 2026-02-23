@@ -160,3 +160,127 @@ class PokemonDatabase:
 
         logger.debug(f"Dados de golpe não encontrados para '{move_name}'")
         return {}
+    
+    def get_base_stats(self, pokemon_name: str):
+        """Retorna stats base do Pokémon (HP, Attack, Defense, SpA, SpD, Speed).
+        
+        Args:
+            pokemon_name: Nome do Pokémon
+            
+        Returns:
+            Dict com keys: hp, attack, defense, special_attack, special_defense, speed
+            Ou None se Pokémon não encontrado
+        """
+        if not pokemon_name:
+            return None
+        
+        key = pokemon_name.strip().lower()
+        
+        # Tenta pokeapi_pokemon primeiro
+        data = self.pokeapi_pokemon.get(key)
+        if data and "stats" in data:
+            stats = data["stats"]
+            return {
+                "hp": stats.get("hp", 0),
+                "attack": stats.get("attack", 0),
+                "defense": stats.get("defense", 0),
+                "special_attack": stats.get("special-attack", 0),
+                "special_defense": stats.get("special-defense", 0),
+                "speed": stats.get("speed", 0)
+            }
+        
+        # Fallback: dex legacy
+        legacy = self.dex_legacy.get(key)
+        if legacy and "stats" in legacy:
+            stats = legacy["stats"]
+            return {
+                "hp": stats.get("hp", 0),
+                "attack": stats.get("attack", 0),
+                "defense": stats.get("defense", 0),
+                "special_attack": stats.get("special_attack", 0) or stats.get("special-attack", 0),
+                "special_defense": stats.get("special_defense", 0) or stats.get("special-defense", 0),
+                "speed": stats.get("speed", 0)
+            }
+        
+        logger.warning(f"Stats base não encontrados para '{pokemon_name}'")
+        return None
+    
+    def estimate_stat(self, base_stat, level, iv=31, ev=252, nature=1.0):
+        """Calcula stat real usando a fórmula de Pokémon.
+        
+        Args:
+            base_stat: Stat base do Pokémon
+            level: Nível atual
+            iv: Individual Value (0-31, padrão 31 = pior caso)
+            ev: Effort Value (0-252, padrão 252 = pior caso)
+            nature: Multiplicador de nature (1.1 para +, 0.9 para -, 1.0 neutro)
+            
+        Returns:
+            int: Stat calculado
+        """
+        return int(((base_stat * 2 + iv + (ev // 4)) * level / 100 + 5) * nature)
+    
+    def get_common_moves(self, pokemon_name: str):
+        """Retorna lista de golpes comuns/prováveis que o Pokémon pode ter.
+        
+        Args:
+            pokemon_name: Nome do Pokémon
+            
+        Returns:
+            Lista de nomes de movimentos (strings)
+        """
+        if not pokemon_name:
+            return []
+        
+        key = pokemon_name.strip().lower()
+        
+        # Tenta pokeapi_pokemon primeiro
+        data = self.pokeapi_pokemon.get(key)
+        if data and "moves" in data:
+            # Retorna movimentos comuns (primeiros 8)
+            return data["moves"][:8]
+        
+        # Fallback: movimentos genéricos por tipo
+        types = self.get_pokemon_types(pokemon_name)
+        common_moves = []
+        
+        if "electric" in types or 10 in types:
+            common_moves = ["thunderbolt", "thunder", "volt switch", "wild charge"]
+        elif "water" in types or 11 in types:
+            common_moves = ["surf", "hydro pump", "scald", "aqua jet"]
+        elif "fire" in types or 10 in types:
+            common_moves = ["flamethrower", "fire blast", "flare blitz", "fire punch"]
+        elif "grass" in types or 12 in types:
+            common_moves = ["energy ball", "leaf storm", "giga drain", "wood hammer"]
+        elif "fighting" in types or 2 in types:
+            common_moves = ["close combat", "aura sphere", "drain punch", "mach punch"]
+        else:
+            # Movimentos genéricos
+            common_moves = ["return", "hyper beam", "body slam", "quick attack"]
+        
+        return common_moves
+    
+    def get_priority_moves(self, pokemon_name: str):
+        """Retorna lista de golpes de prioridade que o Pokémon pode ter.
+        
+        Args:
+            pokemon_name: Nome do Pokémon
+            
+        Returns:
+            Lista de nomes de movimentos com prioridade > 0
+        """
+        if not pokemon_name:
+            return []
+        
+        # Lista de movimentos de prioridade comuns
+        priority_moves = [
+            "quick attack", "aqua jet", "mach punch", "bullet punch",
+            "ice shard", "shadow sneak", "vacuum wave", "extreme speed",
+            "sucker punch", "accelerock", "water shuriken"
+        ]
+        
+        # Verifica se o Pokémon tem acesso a algum desses
+        common_moves = self.get_common_moves(pokemon_name)
+        
+        return [m for m in priority_moves if m in [cm.lower() for cm in common_moves]]
+
