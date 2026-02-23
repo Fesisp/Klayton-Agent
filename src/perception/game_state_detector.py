@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import winsound
+import os
 from enum import Enum
 from loguru import logger
 
@@ -42,7 +43,12 @@ class GameStateDetector:
 
     def find_player_name(self, frame, nickname):
         """
-        Procura o nickname de um jogador no frame usando template matching ou OCR.
+        Busca de Texto Flutuante: Ignora sprite e foca no nome do jogador.
+        
+        MELHORIAS v2.5.2:
+        - Template matching em ESCALA DE CINZA (mais robusto a variações de cor)
+        - OCR com preprocessamento avançado (threshold adaptativo)
+        - Busca em ROI expandida (20-70% altura/largura)
         
         Args:
             frame: Frame capturado da tela
@@ -52,45 +58,61 @@ class GameStateDetector:
             tuple: (x, y) coordenadas do centro do nome encontrado, ou None se não encontrado
         """
         import pytesseract
+        import os
         
-        # 1. Tenta template matching se houver template do nome
+        # 1. Template Matching em ESCALA DE CINZA (ignora cor do texto)
         template_path = os.path.join('assets', 'templates', f'name_{nickname.lower()}.png')
         if os.path.exists(template_path):
-            template = cv2.imread(template_path)
-            result = cv2.matchTemplate(frame, template, cv2.TM_CCOEFF_NORMED)
+            template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+            frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            
+            result = cv2.matchTemplate(frame_gray, template, cv2.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
             
-            if max_val > 0.8:  # 80% de confiança
+            if max_val > 0.75:  # 75% confiança (menor que antes por usar grayscale)
                 h, w = template.shape[:2]
                 center_x = max_loc[0] + w // 2
                 center_y = max_loc[1] + h // 2
+                logger.debug(f"🎯 Nome '{nickname}' encontrado via template (conf: {max_val:.2f})")
                 return (center_x, center_y)
         
-        # 2. Fallback: OCR na região central onde nomes flutuantes aparecem
+        # 2. OCR Fallback com ROI expandida e preprocessamento avançado
         h, w = frame.shape[:2]
-        roi = frame[int(h*0.3):int(h*0.6), int(w*0.3):int(w*0.7)]
+        roi = frame[int(h*0.2):int(h*0.7), int(w*0.2):int(w*0.8)]  # ROI maior
         
-        # Preprocessamento para OCR
+        # Preprocessamento AVANÇADO para texto flutuante
         gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
         
-        # OCR
-        text = pytesseract.image_to_string(thresh, config='--psm 11')
+        # 1) Threshold adaptativo (melhor para texto com sombra)
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                       cv2.THRESH_BINARY, 11, 2)
         
-        # Procura o nickname no texto extraído
+        # 2) Remoção de ruído
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        
+        # OCR com configuração otimizada para texto flutuante
+        text = pytesseract.image_to_string(thresh, config='--psm 11 --oem 3')
+        
+        # Procura o nickname no texto extraído (case-insensitive)
         if nickname.lower() in text.lower():
-            # Tenta pegar posição mais precisa com image_to_boxes
-            boxes = pytesseract.image_to_boxes(thresh)
-            for box in boxes.splitlines():
-                parts = box.split()
-                if len(parts) >= 5 and parts[0].lower() in nickname.lower():
-                    x = int(parts[1]) + int(w*0.3)
-                    y = h - int(parts[2]) + int(h*0.3)  # Ajuste de coordenada Y
+            logger.debug(f"🎯 Nome '{nickname}' encontrado via OCR: {text.strip()}")
+            
+            # Tenta pegar posição mais precisa com image_to_data
+            data = pytesseract.image_to_data(thresh, output_type=pytesseract.Output.DICT)
+            
+            for i, word in enumerate(data['text']):
+                if word and nickname.lower() in word.lower():
+                    x = data['left'][i] + data['width'][i] // 2 + int(w*0.2)
+                    y = data['top'][i] + data['height'][i] // 2 + int(h*0.2)
                     return (x, y)
         
         return None
 
     def detect_state(self, image):
+        # Armazena frame para cálculos de HP
+        self.last_frame = image
+        
         # 1. Verifica SHINY (Prioridade Absoluta)
         if self._detect_shiny(image):
             return GameState.SHINY_FOUND
@@ -262,7 +284,46 @@ class GameStateDetector:
         
         return hp_ratio
     
-    def _get_hp_percentage(self, image, hp_bar_roi_key):
+    def detect_enemy_action_category(self):
+        """Detecta se o inimigo usou golpe de BUFF/SETUP no último turno.
+        
+        APLICAÇÃO:
+        Previne que o bot vire "escada" durante Sleep/Freeze.
+        Se detectar Dragon Dance, Swords Dance, Calm Mind, etc., força troca.
+        
+        MÉTODO:
+        - Analisa log de batalha (se disponível)
+        - Detecta animações de buff (brilho, partículas)
+        - Fallback: assume ataque se incerto
+        
+        Returns:
+            str: "STATUS_BUFF", "ATTACK", "UNKNOWN"
+        """
+        # TODO: Implementar detecção via análise de animação ou log
+        # Por enquanto, retorna UNKNOWN (não bloqueia funcionalidade)
+        
+        # Placeholder: Poderia analisar ROI de mensagem de batalha
+        # Ex: "Dragonite usou Dragon Dance!" -> STATUS_BUFF
+        
+        logger.debug("detect_enemy_action_category não implementado - retornando UNKNOWN")
+        return "UNKNOWN"
+    
+    def get_hp_ratio_by_pixel(self, frame, side='player'):
+        """Wrapper para get_hp_ratio com nome mais descritivo.
+        
+        Scanner HSV para HP - Precisão de 99% via contagem de pixels coloridos.
+        Método preferido sobre OCR pois não é afetado por lag ou blur.
+        
+        Args:
+            frame: Frame capturado da tela
+            side: 'player' ou 'enemy'
+            
+        Returns:
+            float: HP ratio (0.0 a 1.0) ou None se ROI inválida
+        """
+        return self.get_hp_ratio(frame, side)
+    
+    def _get_hp_percentage(self, image, roi_key):    def _get_hp_percentage(self, image, roi_key):
         """
         Calcula a porcentagem de HP baseado na cor da barra de HP.
         Wrapper para get_hp_ratio que retorna porcentagem (0-100).

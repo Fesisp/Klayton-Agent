@@ -67,6 +67,11 @@ class BotController:
         self.last_seen_time = 0
         self.follow_lost_target_timeout = float(self.cfg.get('follow_settings', {}).get('lost_target_timeout', 5.0))
         self.follow_player_name = self.cfg.get('follow_settings', {}).get('player_name', None)
+        
+        # Memória de Alvo: Rastreia última posição conhecida
+        self.target_last_known_pos = None
+        self.target_last_seen_time = 0
+        self.memory_retention = float(self.cfg.get('follow_settings', {}).get('memory_retention', 10.0))  # 10 segundos
 
         # Tracking de batalha para inferência de velocidade/dano
         self.last_player_hp_percentage = None
@@ -80,6 +85,88 @@ class BotController:
         elif self.behavior == BotBehavior.FOLLOW:
             logger.info(f"Modo Follow ativo - Método: {self.follow_method}")
 
+    def handle_follow_behavior(self, frame):
+        """Modo FOLLOW com Memória de Alvo.
+        
+        LÓGICA:
+        1. Busca o nome do jogador no frame
+        2. Se encontrado: salva posição e caminha até ele
+        3. Se NÃO encontrado: caminha até ÚLTIMA posição conhecida
+        4. Se memória expirou (>10s): para e aguarda
+        
+        Args:
+            frame: Frame capturado da tela
+        """
+        if not self.follow_player_name:
+            logger.warning("⚠️ FOLLOW ativo mas player_name não configurado")
+            return
+        
+        current_time = time.time()
+        
+        # Busca o jogador no frame
+        player_pos = self.detector.find_player_name(frame, self.follow_player_name)
+        
+        if player_pos:
+            # JOGADOR ENCONTRADO: Atualiza memória
+            self.target_last_known_pos = player_pos
+            self.target_last_seen_time = current_time
+            
+            # Calcula distância do centro da tela
+            h, w = frame.shape[:2]
+            center_x, center_y = w // 2, h // 2
+            player_x, player_y = player_pos
+            
+            distance = ((player_x - center_x)**2 + (player_y - center_y)**2)**0.5
+            
+            if distance > self.follow_distance:
+                # Jogador longe: caminha em direção a ele
+                logger.debug(f"👣 Seguindo {self.follow_player_name} (dist: {distance:.0f}px)")
+                self.input.click_at(player_x, player_y)
+                time.sleep(0.5)
+        else:
+            # JOGADOR NÃO ENCONTRADO: Usa memória
+            time_since_last_seen = current_time - self.target_last_seen_time
+            
+            if self.target_last_known_pos and time_since_last_seen < self.memory_retention:
+                # Memória ainda válida: caminha para última posição
+                logger.info(f"🔍 {self.follow_player_name} sumiu - Indo para última posição ({time_since_last_seen:.1f}s atrás)")
+                x, y = self.target_last_known_pos
+                self.input.click_at(x, y)
+                time.sleep(1.0)  # Sleep maior para dar tempo de chegar
+            else:
+                # Memória expirou: para e aguarda
+                if time_since_last_seen >= self.memory_retention:
+                    logger.warning(f"⏰ {self.follow_player_name} perdido há {time_since_last_seen:.1f}s - Aguardando...")
+                    self.target_last_known_pos = None  # Limpa memória
+                time.sleep(2.0)
+    
+    def _click_near_target(self, target_pos, frame):
+        """Clica próximo ao alvo com pequena variação para parecer humano."""
+        x, y = target_pos
+        # Adiciona variação de ±5 pixels
+        x_offset = random.randint(-5, 5)
+        y_offset = random.randint(-5, 5)
+        self.input.click_at(x + x_offset, y + y_offset)
+    
+    def _reached_last_pos(self, last_pos):
+        """Verifica se o bot chegou na última posição conhecida.
+        
+        MÉTODO:
+        Compara posição do personagem (centro da tela) com última posição do alvo.
+        Se distância < 30px, considera que chegou.
+        
+        Args:
+            last_pos: (x, y) da última posição conhecida
+            
+        Returns:
+            bool: True se chegou, False caso contrário
+        """
+        # Centro da tela = posição do personagem controlado
+        # Se alvo estava no centro, chegamos
+        # Implementação simplificada: sempre retorna False (memória persiste)
+        # TODO: Implementar detecção real de posição do personagem
+        return False
+    
     def run(self):
         logger.info(f"Bot Iniciado em modo {self.behavior.name}! Pressione Ctrl+C para parar.")
         while self.running:
@@ -98,6 +185,10 @@ class BotController:
                 # PRIORIDADE MÁXIMA: Shiny (sobrepõe qualquer estado)
                 if game_state == GameState.SHINY_FOUND:
                     self.handle_shiny()
+                
+                # Modo FOLLOW: Rastreio contínuo de jogador
+                if self.behavior == BotBehavior.FOLLOW:
+                    self.handle_follow_behavior(img)
                     continue
 
                 # PRIORIDADE 2: Batalha (sobrepõe Missão/Caça/Follow, mas não os encerra)

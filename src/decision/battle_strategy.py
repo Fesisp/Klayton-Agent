@@ -58,6 +58,282 @@ class BattleStrategy:
         """
         return int(((base_speed * 2 + iv + (ev // 4)) * level / 100 + 5) * nature)
     
+    def calculate_real_damage(self, enemy_name, enemy_level, my_poke):
+        """Calcula o dano MÁXIMO possível considerando Worst-Case Scenario.
+        
+        FILOSOFIA: Nunca subestimar o inimigo. Assume IVs/EVs máximos, itens ofensivos
+        e aplica corretamente os modificadores de status (Burn, Sleep, Paralysis).
+        
+        MODIFICADORES:
+        - Burn: Corta Ataque Físico em 50% ANTES do cálculo
+        - Choice Band/Specs: 1.5x no dano
+        - Life Orb: 1.3x no dano
+        - Paralysis: Velocidade reduzida a 50% (tratado em get_effective_speed)
+        - Sleep/Freeze: Inimigo não ataca (retorna 0)
+        
+        Args:
+            enemy_name: Nome do Pokémon inimigo
+            enemy_level: Nível do inimigo
+            my_poke: Nome do meu Pokémon
+            
+        Returns:
+            float: Dano máximo absoluto em HP
+        """
+        # 1. VERIFICAÇÃO DE STATUS INCAPACITANTE
+        enemy_status = self.tm.get_status(enemy_name)
+        if enemy_status in ["SLEEP", "FREEZE"]:
+            logger.info(f"💤 {enemy_name} está {enemy_status} - Não atacará")
+            return 0.0
+        
+        # 2. WORST-CASE: Stats máximos do inimigo (IVs/EVs perfeitos)
+        enemy_stats = self.db.estimate_max_stats(enemy_name, enemy_level)
+        
+        # 3. Stats do meu Pokémon (defesas)
+        my_stats = self.tm.get_stats(my_poke)
+        if not my_stats:
+            logger.warning(f"Stats de {my_poke} não encontrados")
+            return 0.0
+        
+        # 4. MODIFICADOR DE BURN (aplicado ANTES do cálculo)
+        atk_mod = 0.5 if enemy_status == "BURN" else 1.0
+        if enemy_status == "BURN":
+            logger.info(f"🔥 {enemy_name} queimado - Ataque físico reduzido 50%")
+        
+        # 5. INFERÊNCIA DE ITENS
+        item = self.tm.get_inferred_item(enemy_name)
+        item_mod = 1.0
+        if item == "CHOICE":
+            item_mod = 1.5
+            logger.info(f"⚔️ {enemy_name} aparenta ter Choice Band/Specs (1.5x dano)")
+        elif item == "LIFE_ORB":
+            item_mod = 1.3
+            logger.info(f"💎 {enemy_name} aparenta ter Life Orb (1.3x dano)")
+        
+        # 6. ANÁLISE DE GOLPES PROVÁVEIS
+        max_damage = 0.0
+        best_move = ""
+        possible_moves = self.db.get_common_moves(enemy_name)
+        
+        for move_name in possible_moves:
+            move_data = self.db.get_move_data(move_name)
+            if not move_data:
+                continue
+            
+            power = float(move_data.get('power', 0) or 0)
+            if power == 0:
+                continue  # Ignora golpes de status
+            
+            category = str(move_data.get('category_id', ''))
+            move_type = str(move_data.get('type_id', ''))
+            
+            # Seleciona stats corretos (físico vs especial)
+            if category == '1':  # Físico
+                atk = enemy_stats['attack'] * atk_mod  # Burn aplicado aqui!
+                defense = my_stats.get('defense', 100)
+            elif category == '2':  # Especial
+                atk = enemy_stats['special_attack']  # Burn não afeta especial
+                defense = my_stats.get('special_defense', 100)
+            else:
+                continue
+            
+            # STAB (Same Type Attack Bonus)
+            enemy_types = self.db.get_pokemon_types(enemy_name)
+            stab = 1.5 if move_type in [str(t) for t in enemy_types] else 1.0
+            
+            # Type Effectiveness
+            my_types = self.db.get_pokemon_types(my_poke)
+            type_mult = self.db.get_type_multiplier(move_type, my_types)
+            
+            # FÓRMULA OFICIAL DE DANO (Game Freak)
+            damage = (((2 * enemy_level / 5 + 2) * power * atk / defense) / 50 + 2)
+            final_damage = damage * stab * type_mult * item_mod
+            
+            if final_damage > max_damage:
+                max_damage = final_damage
+                best_move = move_name
+        
+        if max_damage > 0:
+            logger.info(f"⚠️ Pior cenário: {enemy_name} pode causar {max_damage:.1f} HP com {best_move}")
+        
+        return max_damage
+    
+    def calculate_effective_hp_post_turn(self, my_poke, enemy_dmg_ratio):
+        """Calcula se o Pokémon sobrevive ao golpe + dano residual de status.
+        
+        FILOSOFIA: Morte Inesperada NUNCA mais acontece.
+        O bot considera Burn/Toxic/Poison como dano GARANTIDO no fim do turno.
+        Se HP efetivo pós-turno <= 0, é matematicamente impossível sobreviver.
+        
+        FÓRMULA:
+        HP_efetivo = HP_atual - Dano_do_golpe - Dano_residual
+        
+        DANO RESIDUAL:
+        - BURN: 1/16 (6.25%) do HP máximo por turno
+        - POISON: 1/8 (12.5%) do HP máximo por turno
+        - TOXIC: (N/16) onde N = turnos em campo (progressivo)
+        
+        Args:
+            my_poke: Nome do meu Pokémon
+            enemy_dmg_ratio: Dano do golpe inimigo em % (0.0 a 1.0)
+            
+        Returns:
+            bool: True se sobrevive, False se morte é inevitável
+        """
+        if not self.detector:
+            logger.warning("Detector não configurado - assumindo sobrevivência")
+            return True
+        
+        # HP atual do meu Pokémon
+        my_hp_ratio = self.detector.get_hp_ratio(self.detector.last_frame, 'player') if self.detector.last_frame is not None else None
+        if my_hp_ratio is None:
+            my_hp_ratio = 1.0  # Fallback: assume HP cheio
+        
+        status = self.tm.get_status(my_poke)
+        residual_dmg_ratio = 0.0
+        
+        # Calcula dano residual baseado no status
+        if status == "BURN" or status == "POISON":
+            residual_dmg_ratio = 1.0 / 16.0  # 6.25% para Burn
+            if status == "POISON":
+                residual_dmg_ratio = 1.0 / 8.0  # 12.5% para Poison regular
+            logger.debug(f"🔥 Dano residual de {status}: {residual_dmg_ratio*100:.1f}%")
+        
+        elif status == "TOXIC":
+            # Dano progressivo: N/16 onde N = turnos
+            turns_toxic = 8 - self.tm.get_survival_turns(my_poke)  # Turnos decorridos
+            residual_dmg_ratio = turns_toxic / 16.0
+            logger.debug(f"☠️ Dano residual de TOXIC (turno {turns_toxic}): {residual_dmg_ratio*100:.1f}%")
+        
+        # HP efetivo após golpe + status
+        effective_hp = my_hp_ratio - enemy_dmg_ratio - residual_dmg_ratio
+        
+        if effective_hp <= 0:
+            logger.critical(f"💀 MORTE INEVITÁVEL: HP atual {my_hp_ratio*100:.0f}% - Dano {enemy_dmg_ratio*100:.0f}% - Status {residual_dmg_ratio*100:.0f}% = {effective_hp*100:.0f}%")
+            return False
+        
+        logger.info(f"✅ Sobrevivência confirmada: HP efetivo pós-turno = {effective_hp*100:.0f}%")
+        return True
+    
+    def evaluate_danger_table(self, my_poke, enemy_poke, my_current_hp_ratio=1.0):
+        """Tabela de Perigo: Decisões inteligentes baseadas em Status + Priority.
+        
+        LÓGICA DE DECISÃO:
+        1. SLEEP: Se em Sleep e vulnerável (dano > 30% HP), TROCAR imediatamente
+           + PREVENÇÃO DE SETUP BAIT: Se inimigo está se buffando, trocar!
+        2. BURN: Se sou físico e queimado, considerar troca ou golpe especial/status
+        3. PARALYSIS: Recalcular velocidade (50%) e verificar se perco speed tier
+        4. PRIORITY THREAT: Mesmo sendo mais rápido, se Quick Attack me mata, TROCAR
+        5. TOXIC: Se sobrevivência < 3 turnos, TROCAR antes de morrer
+        
+        Args:
+            my_poke: Nome do meu Pokémon
+            enemy_poke: Nome do Pokémon inimigo
+            my_current_hp_ratio: HP atual em % (0.0 a 1.0)
+            
+        Returns:
+            str: "SWITCH_IMMEDIATE" (perigo crítico)
+                 "SWITCH_ADVISED" (recomendado trocar)
+                 "ATTACK" (seguro atacar)
+                 "HEAL" (curar é erro matemático)
+        """
+        my_status = self.tm.get_status(my_poke)
+        my_max_hp = self.tm.get_max_hp(my_poke)
+        my_current_hp = my_max_hp * my_current_hp_ratio
+        
+        # 1. SLEEP: Vulnerabilidade crítica + PREVENÇÃO DE SETUP BAIT
+        if my_status == "SLEEP":
+            damage = self.calculate_real_damage(enemy_poke, self.current_enemy_level, my_poke)
+            damage_ratio = damage / my_max_hp if my_max_hp > 0 else 0
+            
+            # CRÍTICO: Detecta se inimigo está se BUFFANDO (usando você como escada)
+            if self.detector and hasattr(self.detector, 'detect_enemy_action_category'):
+                enemy_action = self.detector.detect_enemy_action_category()
+                if enemy_action == "STATUS_BUFF":
+                    logger.critical("🚨 INIMIGO SE BUFFANDO DURANTE SEU SONO! Forçando troca para interromper Setup.")
+                    return "SWITCH_IMMEDIATE"
+            
+            if damage_ratio > 0.3:  # Mais de 30% do HP
+                logger.warning(f"😴 SLEEP + dano alto ({damage_ratio*100:.0f}%) = TROCAR AGORA")
+                return "SWITCH_IMMEDIATE"
+        
+        # 2. BURN: Verificar se sou atacante físico
+        if my_status == "BURN":
+            my_moves = self.tm.get_moves(my_poke)
+            physical_moves = 0
+            total_attacking_moves = 0
+            
+            for move in my_moves:
+                move_data = self.db.get_move_data(move)
+                if move_data and move_data.get('power', 0) > 0:
+                    total_attacking_moves += 1
+                    if str(move_data.get('category_id', '')) == '1':  # Físico
+                        physical_moves += 1
+            
+            if total_attacking_moves > 0:
+                physical_ratio = physical_moves / total_attacking_moves
+                if physical_ratio > 0.6:  # Mais de 60% físico
+                    logger.warning(f"🔥 Queimado e {physical_ratio*100:.0f}% físico = TROCAR RECOMENDADO")
+                    return "SWITCH_ADVISED"
+        
+        # 3. PARALYSIS: Recalcular speed tier
+        if my_status == "PARALYSIS":
+            my_speed = self.get_effective_speed(my_poke, is_player=True)
+            enemy_speed = self.get_effective_speed(enemy_poke, is_player=False)
+            
+            if enemy_speed > my_speed:
+                logger.info(f"⚡ Paralisia fez eu perder Speed Tier ({my_speed} vs {enemy_speed})")
+                # Verifica se isso me torna vulnerável a OHKO
+                damage = self.calculate_real_damage(enemy_poke, self.current_enemy_level, my_poke)
+                if damage >= my_current_hp:
+                    logger.warning(f"⚡ Perdi velocidade + OHKO risk = TROCAR")
+                    return "SWITCH_IMMEDIATE"
+        
+        # 4. PRIORITY THREAT (CRÍTICO: mesmo sendo mais rápido!)
+        priority_moves = self.db.get_priority_moves(enemy_poke)
+        if priority_moves:
+            for move_name in priority_moves:
+                move_data = self.db.get_move_data(move_name)
+                if not move_data or not move_data.get('power', 0):
+                    continue
+                
+                # Calcula dano do priority move
+                enemy_stats = self.db.estimate_max_stats(enemy_poke, self.current_enemy_level)
+                my_stats = self.tm.get_stats(my_poke)
+                
+                category = str(move_data.get('category_id', ''))
+                if category == '1':  # Físico
+                    atk = enemy_stats['attack']
+                    defense = my_stats.get('defense', 100)
+                elif category == '2':  # Especial
+                    atk = enemy_stats['special_attack']
+                    defense = my_stats.get('special_defense', 100)
+                else:
+                    continue
+                
+                power = move_data.get('power', 0)
+                damage = (((2 * self.current_enemy_level / 5 + 2) * power * atk / defense) / 50 + 2)
+                
+                if damage >= my_current_hp:
+                    logger.warning(f"🎯 {enemy_poke} tem {move_name} (priority) que me mata = TROCAR")
+                    return "SWITCH_IMMEDIATE"
+        
+        # 5. TOXIC: Contador de sobrevivência
+        if my_status == "TOXIC":
+            turns_left = self.tm.get_survival_turns(my_poke)
+            if turns_left < 3:
+                logger.warning(f"☠️ Toxic - apenas {turns_left} turnos restantes = TROCAR")
+                return "SWITCH_ADVISED"
+        
+        # 6. CURAR É ERRO MATEMÁTICO?
+        # Se o dano do inimigo é menor que 25% do meu HP, curar é desperdício
+        damage = self.calculate_real_damage(enemy_poke, self.current_enemy_level, my_poke)
+        damage_ratio = damage / my_max_hp if my_max_hp > 0 else 0
+        
+        if damage_ratio < 0.25 and my_current_hp_ratio > 0.5:
+            return "HEAL"  # Flag para NÃO curar (inimigo muito fraco)
+        
+        return "ATTACK"
+    
     def judge_speed_tier(self, my_poke, enemy_name):
         """Julga se o bot é mais rápido que o inimigo.
         

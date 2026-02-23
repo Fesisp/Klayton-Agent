@@ -220,6 +220,44 @@ class PokemonDatabase:
         """
         return int(((base_stat * 2 + iv + (ev // 4)) * level / 100 + 5) * nature)
     
+    def estimate_max_stats(self, pokemon_name: str, level: int):
+        """Calcula stats máximos possíveis assumindo IVs/EVs perfeitos (Worst-Case Scenario).
+        
+        Este método é crítico para nunca subestimar o inimigo. Assume:
+        - IVs máximos (31)
+        - EVs máximos (252)
+        - Nature favorável (+10%)
+        
+        Args:
+            pokemon_name: Nome do Pokémon inimigo
+            level: Nível do inimigo
+            
+        Returns:
+            Dict com stats máximos: hp, attack, defense, special_attack, special_defense, speed
+        """
+        base_stats = self.get_base_stats(pokemon_name)
+        if not base_stats:
+            logger.warning(f"Stats base não encontrados para '{pokemon_name}' - usando valores médios")
+            # Valores médios defensivos para não arriscar
+            return {
+                'hp': 100,
+                'attack': 100,
+                'defense': 100,
+                'special_attack': 100,
+                'special_defense': 100,
+                'speed': 100
+            }
+        
+        # Calcula com IVs/EVs máximos + nature favorável para cada stat
+        return {
+            'hp': self.estimate_stat(base_stats['hp'], level, iv=31, ev=252, nature=1.0),  # HP não tem nature
+            'attack': self.estimate_stat(base_stats['attack'], level, iv=31, ev=252, nature=1.1),
+            'defense': self.estimate_stat(base_stats['defense'], level, iv=31, ev=252, nature=1.1),
+            'special_attack': self.estimate_stat(base_stats['special_attack'], level, iv=31, ev=252, nature=1.1),
+            'special_defense': self.estimate_stat(base_stats['special_defense'], level, iv=31, ev=252, nature=1.1),
+            'speed': self.estimate_stat(base_stats['speed'], level, iv=31, ev=252, nature=1.1)
+        }
+    
     def get_common_moves(self, pokemon_name: str):
         """Retorna lista de golpes comuns/prováveis que o Pokémon pode ter.
         
