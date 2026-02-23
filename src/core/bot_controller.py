@@ -72,6 +72,7 @@ class BotController:
         self.last_player_hp_percentage = None
         self.last_enemy_hp_percentage = None
         self.last_damage_received = 0
+        self.turn_count = 0  # Contador de turnos para Toxic tracking
         
         logger.info(f"Bot iniciado em modo: {self.behavior.name}")
         if self.behavior == BotBehavior.HUNTING:
