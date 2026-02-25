@@ -39,6 +39,11 @@ class BattleStrategy:
         
         # Detecção de HP do detector (será injetado externamente)
         self.detector = None
+        
+        # Turn Counter (movido de BattleController)
+        self.turn_count = 0
+        self.current_enemy = None
+        self.last_action_time = 0
 
     # ---------------------------------------------------------
     # Cálculos de Speed Tier
@@ -1580,3 +1585,35 @@ class BattleStrategy:
                     return idx
 
         return None
+    
+    def reset_battle_state(self):
+        """Reseta variáveis de estado de batalha (movido de BattleController)."""
+        self.current_enemy = None
+        self.turn_count = 0
+        self.last_action_time = 0
+        self.enemy_outspeeded_me_last_turn = False
+        self.enemy_item_inference = None
+        self.expected_damage_last_turn = 0
+        self.actual_damage_last_turn = 0
+        logger.info("Estado de batalha resetado.")
+    
+    def increment_turn(self):
+        """Incrementa o contador de turnos."""
+        self.turn_count += 1
+        logger.debug(f"Turno {self.turn_count} iniciado")
+    
+    def get_turn_count(self):
+        """Retorna o contador atual de turnos."""
+        return self.turn_count
+    
+    def set_current_enemy(self, enemy_name):
+        """Define o inimigo atual e reseta se for um novo inimigo."""
+        if enemy_name != self.current_enemy:
+            logger.info(f"Novo inimigo detectado: {enemy_name}")
+            self.reset_battle_state()
+            self.current_enemy = enemy_name
+    
+    def update_last_action_time(self):
+        """Atualiza o timestamp da última ação de batalha."""
+        import time
+        self.last_action_time = time.time()

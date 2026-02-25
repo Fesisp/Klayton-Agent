@@ -282,11 +282,14 @@ class GameStateDetector:
         )
         player_name = player_name_raw.replace("Lv", "").strip()
         
-        # Detectar HP do player (porcentagem baseada em cor da barra)
-        player_hp_percentage = self._get_hp_percentage(image, 'player_hp_bar')
+        # Detectar HP usando contagem de pixels HSV (método preferido e exclusivo)
+        player_hp_percentage = self.get_hp_ratio_by_pixel(image, 'player')
+        if player_hp_percentage is not None:
+            player_hp_percentage = round(player_hp_percentage * 100, 1)
         
-        # Detectar HP do inimigo (porcentagem baseada em cor da barra)
-        enemy_hp_percentage = self._get_hp_percentage(image, 'enemy_hp_bar')
+        enemy_hp_percentage = self.get_hp_ratio_by_pixel(image, 'enemy')
+        if enemy_hp_percentage is not None:
+            enemy_hp_percentage = round(enemy_hp_percentage * 100, 1)
         
         # NOVO: Detectar status do inimigo via ícone
         enemy_status = self.detect_enemy_status_icon(image)
@@ -406,36 +409,6 @@ class GameStateDetector:
             float: HP ratio (0.0 a 1.0) ou None se ROI inválida
         """
         return self.get_hp_ratio(frame, side)
-    
-    def _get_hp_percentage(self, image, roi_key):
-        """
-        Calcula a porcentagem de HP baseado na cor da barra de HP.
-        Wrapper para get_hp_ratio que retorna porcentagem (0-100).
-        
-        Args:
-            image: Imagem da tela
-            hp_bar_roi_key: Chave da ROI no config (ex: 'player_hp_bar' ou 'enemy_hp_bar')
-            
-        Returns:
-            Porcentagem de HP (0-100) ou None se ROI não existir
-        """
-        # Extrai 'player' ou 'enemy' do nome da chave
-        if 'player' in hp_bar_roi_key:
-            side = 'player'
-        elif 'enemy' in hp_bar_roi_key:
-            side = 'enemy'
-        else:
-            # Fallback para método antigo se não reconhecer
-            return None
-        
-        hp_ratio = self.get_hp_ratio(image, side)
-        if hp_ratio is None:
-            return None
-        
-        # Converter razão para porcentagem
-        percentage = hp_ratio * 100
-        
-        return round(percentage, 1)
     
     def find_player_name(self, image, player_name):
         """

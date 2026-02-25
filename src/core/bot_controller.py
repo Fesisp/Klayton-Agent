@@ -8,6 +8,7 @@ import ctypes
 from loguru import logger
 from ..perception.game_state_detector import GameState
 from ..utils.geometry import normalize_roi, crop_roi_safe, get_safe_random_point
+from ..utils.navigation_helper import NavigationHelper
 
 
 class BotBehavior(Enum):
@@ -31,10 +32,10 @@ class BotController:
         
         self.running = True
         self.paused = False  # Controle de pausa via hotkey
-        # Controle de Cooldown para evitar cliques repetidos
-        self.last_goto_click = 0
-        self.goto_cooldown = 15.0 # Espera 15 segundos antes de clicar de novo
         self.debug = bool(self.cfg.get('bot', {}).get('debug_mode', False))
+        
+        # NavigationHelper para detecção de obstáculos
+        self.nav_helper = NavigationHelper(self.input, config)
         
         # Máquina de Estados - Comportamento Ativo
         behavior_cfg = self.cfg.get('bot', {}).get('behavior', 'mission').lower()
@@ -92,14 +93,14 @@ class BotController:
         elif self.behavior == BotBehavior.FOLLOW:
             logger.info(f"Modo Follow ativo - Método: {self.follow_method}")
 
-    def handle_follow_behavior(self, frame):
-        """Modo FOLLOW com Memória de Alvo.
+    def handle_follow(self, frame):
+        """Modo FOLLOW consolidado com Template Matching prioritário e OCR como fallback.
         
-        LÓGICA:
-        1. Busca o nome do jogador no frame
-        2. Se encontrado: salva posição e caminha até ele
-        3. Se NÃO encontrado: caminha até ÚLTIMA posição conhecida
-        4. Se memória expirou (>10s): para e aguarda
+        ESTRATÉGIA OTIMIZADA:
+        1. Template Matching em escala de cinza (rápido e preciso)
+        2. Se falhar: OCR Deep Search após 3 segundos
+        3. Memória de última posição conhecida
+        4. Detecção de obstáculos via NavigationHelper
         
         Args:
             frame: Frame capturado da tela
@@ -110,139 +111,76 @@ class BotController:
         
         current_time = time.time()
         
-        # Busca o jogador no frame
-        player_pos = self.detector.find_player_name(frame, self.follow_player_name)
+        # Verificar cooldown de checagem
+        if current_time - self.last_follow_check < self.follow_check_interval:
+            return
         
-        if player_pos:
-            # JOGADOR ENCONTRADO: Atualiza memória
-            self.target_last_known_pos = player_pos
-            self.target_last_seen_time = current_time
+        self.last_follow_check = current_time
+        
+        # === FASE 1: Template Matching (Prioritário) ===
+        target_pos = self._follow_by_template_get_pos(frame)
+        
+        # === FASE 2: OCR Deep Search (Fallback após 3s) ===
+        if not target_pos:
+            time_since_last_seen = current_time - self.last_seen_time if self.last_seen_time else 999
             
-            # Calcula distância do centro da tela
+            if time_since_last_seen > 3.0:  # Deep Search após 3 segundos
+                if self.debug:
+                    logger.debug("[FOLLOW] Template falhou - Ativando OCR Deep Search...")
+                target_pos = self.detector.find_player_name(frame, self.follow_player_name)
+        
+        # === FASE 3: Processamento de Posição ===
+        if target_pos:
+            # Alvo encontrado - atualiza memória
+            self.last_seen_pos = target_pos
+            self.last_seen_time = current_time
+            self.nav_helper.reset_stuck_detection()
+            
+            # Calcula distância do centro
             h, w = frame.shape[:2]
             center_x, center_y = w // 2, h // 2
-            player_x, player_y = player_pos
+            player_x, player_y = target_pos
             
             distance = ((player_x - center_x)**2 + (player_y - center_y)**2)**0.5
             
             if distance > self.follow_distance:
-                # Jogador longe: caminha em direção a ele
-                logger.debug(f"👣 Seguindo {self.follow_player_name} (dist: {distance:.0f}px)")
-                
-                # Detecção de Obstáculos: Verifica se está preso
-                current_time = time.time()
-                if self._is_stuck_on_obstacle(player_pos, current_time):
-                    logger.warning("🚧 Obstáculo detectado! Tentando movimento lateral...")
-                    self._perform_escape_movement()
-                    self.last_click_time = current_time
+                # === DETECÇÃO DE OBSTÁCULOS ===
+                if self.nav_helper.is_stuck(target_pos, current_time):
+                    logger.warning("🚧 Obstáculo detectado! Executando escape...")
+                    self.nav_helper.perform_escape_movement()
                     return
                 
-                # Movimento normal
-                self.input.click_at(player_x, player_y)
-                self.last_click_pos = (player_x, player_y)
-                self.last_click_time = current_time
-                self.escape_attempts = 0  # Reset contador de escape
-                time.sleep(0.5)
-        else:
-            # JOGADOR NÃO ENCONTRADO: Usa memória
-            time_since_last_seen = current_time - self.target_last_seen_time
-            
-            if self.target_last_known_pos and time_since_last_seen < self.memory_retention:
-                # Memória ainda válida: caminha para última posição
-                logger.info(f"🔍 {self.follow_player_name} sumiu - Indo para última posição ({time_since_last_seen:.1f}s atrás)")
-                x, y = self.target_last_known_pos
-                self.input.click_at(x, y)
-                time.sleep(1.0)  # Sleep maior para dar tempo de chegar
+                # Movimento normal em direção ao alvo
+                move_x = center_x + int((player_x - center_x) * 0.7)
+                move_y = center_y + int((player_y - center_y) * 0.7)
+                
+                logger.info(f"👤 [FOLLOW] Seguindo {self.follow_player_name} | dist: {distance:.0f}px")
+                self.input.click(move_x, move_y)
+                
+                walk_time = min(1.5, max(0.3, distance / 500))
+                time.sleep(walk_time)
             else:
-                # Memória expirou: para e aguarda
-                if time_since_last_seen >= self.memory_retention:
-                    logger.warning(f"⏰ {self.follow_player_name} perdido há {time_since_last_seen:.1f}s - Aguardando...")
-                    self.target_last_known_pos = None  # Limpa memória
-                time.sleep(2.0)
-    
-    def _is_stuck_on_obstacle(self, current_target_pos, current_time):
-        """Detecta se o bot está preso em um obstáculo.
+                if self.debug:
+                    logger.debug(f"[FOLLOW] Alvo próximo ({distance:.0f}px < {self.follow_distance}px)")
         
-        LÓGICA:
-        Se clicar no mesmo alvo (ou muito próximo) por mais de 1.5s,
-        o bot provavelmente está batendo em uma parede/balcão/NPC.
-        
-        Args:
-            current_target_pos: (x, y) do alvo atual
-            current_time: Timestamp atual
+        else:
+            # === FASE 4: Memória de Curto Prazo ===
+            time_since_last_seen = current_time - self.last_seen_time if self.last_seen_time else 999
             
-        Returns:
-            bool: True se preso, False se ok
-        """
-        if not self.last_click_pos or not self.last_click_time:
-            return False
-        
-        # Calcula distância entre alvo atual e último clique
-        dx = current_target_pos[0] - self.last_click_pos[0]
-        dy = current_target_pos[1] - self.last_click_pos[1]
-        distance = (dx**2 + dy**2)**0.5
-        
-        # Se alvo é o mesmo (~10px de diferença) por muito tempo
-        time_stuck = current_time - self.last_click_time
-        
-        if distance < 10 and time_stuck > self.stuck_threshold:
-            return True
-        
-        return False
-    
-    def _perform_escape_movement(self):
-        """Realiza movimento lateral para escapar de obstáculo.
-        
-        ESTRATÉGIA:
-        Tenta 4 direções em sequência: Direita (D), Esquerda (A), Cima (W), Baixo (S)
-        Cada tentativa anda ~2 passos na direção.
-        """
-        directions = ['d', 'a', 'w', 's']
-        current_direction = directions[self.escape_attempts % 4]
-        
-        logger.info(f"🚪 Escape {self.escape_attempts + 1}/4: Movimento {current_direction.upper()}")
-        
-        # Pressiona tecla direcional 2x (2 passos)
-        for _ in range(2):
-            self.input.press_directional_key(current_direction)
-            time.sleep(0.3)
-        
-        self.escape_attempts += 1
-        
-        # Se tentou todas as 4 direções, reseta
-        if self.escape_attempts >= self.max_escape_attempts:
-            logger.warning("⚠️ Escape falhou após 4 tentativas - Aguardando...")
-            self.escape_attempts = 0
-            time.sleep(2.0)  # Pausa antes de tentar novamente
-    
-    def _click_with_offset(self, target_pos, frame):
-        """Clica próximo ao alvo com pequena variação para parecer humano."""
-        x, y = target_pos
-        # Adiciona variação de ±5 pixels
-        x_offset = random.randint(-5, 5)
-        y_offset = random.randint(-5, 5)
-        self.input.click_at(x + x_offset, y + y_offset)
-    
-    def _reached_last_pos(self, last_pos):
-        """Verifica se o bot chegou na última posição conhecida.
-        
-        MÉTODO:
-        Compara posição do personagem (centro da tela) com última posição do alvo.
-        Se distância < 30px, considera que chegou.
-        
-        Args:
-            last_pos: (x, y) da última posição conhecida
-            
-        Returns:
-            bool: True se chegou, False caso contrário
-        """
-        # Centro da tela = posição do personagem controlado
-        # Se alvo estava no centro, chegamos
-        # Implementação simplificada: sempre retorna False (memória persiste)
-        # TODO: Implementar detecção real de posição do personagem
-        return False
+            if self.last_seen_pos and time_since_last_seen < self.follow_lost_target_timeout:
+                logger.info(f"🔍 Alvo perdido - Indo para última posição ({time_since_last_seen:.1f}s)")
+                x, y = self.last_seen_pos
+                self.input.click(x, y)
+                time.sleep(1.0)
+            else:
+                # Timeout - modo de recuperação
+                if time_since_last_seen >= self.follow_lost_target_timeout:
+                    logger.warning(f"⏰ Alvo perdido há {time_since_last_seen:.1f}s - Busca de recuperação")
+                    self.last_seen_pos = None
+                    self._recovery_search()
     
     def run(self):
+        """Loop principal do bot."""
         logger.info(f"Bot Iniciado em modo {self.behavior.name}! Pressione Ctrl+C para parar.")
         while self.running:
             try:
@@ -263,7 +201,7 @@ class BotController:
                 
                 # Modo FOLLOW: Rastreio contínuo de jogador
                 if self.behavior == BotBehavior.FOLLOW:
-                    self.handle_follow_behavior(img)
+                    self.handle_follow(img)
                     continue
 
                 # PRIORIDADE 2: Batalha (sobrepõe Missão/Caça/Follow, mas não os encerra)
@@ -282,8 +220,8 @@ class BotController:
                     elif self.behavior == BotBehavior.IDLE:
                         if self.debug:
                             logger.debug("Bot em estado OCIOSO. Aguardando...")
-                        # Ações idle ocasionais para parecer humano
-                        self.input.perform_idle_action()
+                        # Modo IDLE: não faz absolutamente nada
+                        pass
                 
                 # Intervalo do loop principal (configurável, padrão 1.0s)
                 sleep_time = float(self.cfg.get('bot', {}).get('loop_interval', 1.0))
@@ -750,7 +688,79 @@ class BotController:
         # Espera animação de ataque/botões reaparecerem (mais paciente)
         time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 4.0))
     
-    def handle_follow(self, img):
+    def _recovery_search(self):
+        """Tenta recuperar visão do alvo quando perdido (método auxiliar de FOLLOW)."""
+        if self.debug:
+            logger.debug("[FOLLOW] Executando busca de recuperação...")
+        
+        # Opção 1: Girar câmera
+        if random.random() < 0.5:
+            rotate_key = random.choice(['q', 'e'])
+            if self.debug:
+                logger.debug(f"[FOLLOW] Girando câmera ({rotate_key})...")
+            self.input.press(rotate_key)
+            time.sleep(0.3)
+        else:
+            # Opção 2: Dar pequenos passos aleatórios
+            directions = ['w', 'a', 's', 'd']
+            direction = random.choice(directions)
+            if self.debug:
+                logger.debug(f"[FOLLOW] Dando passos ({direction})...")
+            for _ in range(3):
+                self.input.press(direction)
+                time.sleep(0.1)
+        
+        time.sleep(random.uniform(0.5, 1.0))
+    
+    def _follow_by_template_get_pos(self, img):
+        """Template matching em escala de cinza para detectar personagem seguido.
+        
+        Returns:
+            tuple: (x, y) posição do alvo ou None se não encontrado
+        """
+        follow_cfg = self.cfg.get('follow', {})
+        player_template_name = follow_cfg.get('player_template', 'player_char.png')
+        assets_dir = self.cfg.get('assets', {}).get('templates_dir', 'assets/templates/')
+        player_template_path = assets_dir + player_template_name
+        
+        # Carrega template na primeira chamada
+        if not hasattr(self, '_player_template'):
+            try:
+                self._player_template = cv2.imread(player_template_path)
+                if self._player_template is None:
+                    logger.warning(f"Template de personagem não encontrado: {player_template_path}")
+                    return None
+            except Exception as e:
+                logger.error(f"Erro ao carregar template: {e}")
+                return None
+        
+        if self._player_template is None:
+            return None
+        
+        try:
+            # Converte para escala de cinza para melhor precisão
+            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            gray_template = cv2.cvtColor(self._player_template, cv2.COLOR_BGR2GRAY)
+            
+            res = cv2.matchTemplate(gray_img, gray_template, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(res)
+            
+            threshold = float(follow_cfg.get('match_threshold', 0.7))
+            
+            if max_val >= threshold:
+                h, w = self._player_template.shape[:2]
+                player_x = max_loc[0] + w // 2
+                player_y = max_loc[1] + h // 2
+                return (player_x, player_y)
+            else:
+                if self.debug:
+                    logger.debug(f"[FOLLOW] Template score: {max_val:.3f} < {threshold}")
+                return None
+        
+        except Exception as e:
+            logger.error(f"Erro no template matching: {e}")
+            return None
+
         """Modo FOLLOW: Segue o personagem principal do jogador com memória e resiliência."""
         
         # Verificar se passou tempo suficiente desde a última verificação

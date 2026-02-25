@@ -131,8 +131,8 @@ def test_bot_methods():
         
         methods = [
             'run', 'handle_shiny', 'handle_mission', 
-            'handle_hunting', 'handle_battle', 'handle_follow_behavior',
-            '_click_near_target', '_reached_last_pos'
+            'handle_hunting', 'handle_battle', 'handle_follow',
+            '_recovery_search', '_follow_by_template_get_pos'
         ]
         
         for method in methods:
