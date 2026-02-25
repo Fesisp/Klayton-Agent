@@ -31,6 +31,16 @@ class GameStateDetector:
         bag_path = assets_dir + config.get('assets', {}).get('bag_image', 'bag.png')
         pokemon_path = assets_dir + config.get('assets', {}).get('pokemon_image', 'pokemon.png')
         run_path = assets_dir + config.get('assets', {}).get('run_image', 'run.png')
+        
+        # Templates de ícones de status (BRN, PAR, PSN, TOX, SLP, FRZ)
+        status_templates = {}
+        for status in ['brn', 'par', 'psn', 'tox', 'slp', 'frz']:
+            status_path = os.path.join(assets_dir, f'status_{status}.png')
+            if os.path.exists(status_path):
+                status_templates[status] = cv2.imread(status_path)
+            else:
+                logger.debug(f"Template de status '{status}' não encontrado em {status_path}")
+        
         return {
             'shiny': cv2.imread(shiny_path),
             'talk': cv2.imread(talk_path),
@@ -39,6 +49,7 @@ class GameStateDetector:
             'bag': cv2.imread(bag_path),
             'pokemon': cv2.imread(pokemon_path),
             'run': cv2.imread(run_path),
+            'status': status_templates  # Dicionário de templates de status
         }
 
     def find_player_name(self, frame, nickname):
@@ -172,6 +183,75 @@ class GameStateDetector:
 
         return False
 
+    def detect_enemy_status_icon(self, image):
+        """Detecta ícone de status do inimigo ao lado da barra de HP.
+        
+        PROBLEMA RESOLVIDO:
+        Bot não detectava status se inimigo JA ENTRAVA na batalha com status
+        (ex: Pokémon selvagem com Burn de habilidade ou clima).
+        
+        MÉTODO:
+        - ROI ao lado da barra de HP do inimigo (onde ícones aparecem)
+        - Template matching para BRN, PAR, PSN, TOX, SLP, FRZ
+        - Threshold 0.7 (70% confiança)
+        
+        Args:
+            image: Frame completo da tela
+            
+        Returns:
+            str: "BURN", "PARALYSIS", "POISON", "TOXIC", "SLEEP", "FREEZE" ou None
+        """
+        # ROI próxima à barra de HP do inimigo (configurar em settings.yaml)
+        status_roi = self.rois.get('enemy_status_icon')
+        if not status_roi:
+            # Fallback: usa região próxima ao nome do inimigo
+            enemy_name_roi = self.rois.get('enemy_name')
+            if enemy_name_roi:
+                # Extende ROI para a direita (onde ícones aparecem)
+                x, y, w, h = enemy_name_roi
+                status_roi = [x + w + 5, y - 5, 30, 20]  # 30x20px ao lado
+            else:
+                logger.warning("ROI 'enemy_status_icon' não configurada")
+                return None
+        
+        status_img = crop_roi_safe(image, status_roi)
+        if status_img is None or status_img.size == 0:
+            return None
+        
+        # Dicionário de mapeamento template -> status oficial
+        status_map = {
+            'brn': 'BURN',
+            'par': 'PARALYSIS',
+            'psn': 'POISON',
+            'tox': 'TOXIC',
+            'slp': 'SLEEP',
+            'frz': 'FREEZE'
+        }
+        
+        status_templates = self.templates.get('status', {})
+        threshold = 0.7  # 70% confiança
+        best_match = None
+        best_score = 0.0
+        
+        # Testa cada template de status
+        for template_key, template in status_templates.items():
+            if template is None:
+                continue
+            
+            result = cv2.matchTemplate(status_img, template, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, _ = cv2.minMaxLoc(result)
+            
+            if max_val > best_score and max_val >= threshold:
+                best_score = max_val
+                best_match = template_key
+        
+        if best_match:
+            detected_status = status_map[best_match]
+            logger.info(f"🎯 Ícone de status detectado: {detected_status} (confiança: {best_score:.2f})")
+            return detected_status
+        
+        return None
+
     def get_battle_info(self, image):
         """Extrai nome do inimigo, nome do player e HP."""
         # Nome do inimigo
@@ -207,6 +287,9 @@ class GameStateDetector:
         
         # Detectar HP do inimigo (porcentagem baseada em cor da barra)
         enemy_hp_percentage = self._get_hp_percentage(image, 'enemy_hp_bar')
+        
+        # NOVO: Detectar status do inimigo via ícone
+        enemy_status = self.detect_enemy_status_icon(image)
 
         return {
             "enemy_name": enemy_name,
@@ -214,6 +297,7 @@ class GameStateDetector:
             "player_name": player_name,
             "player_hp_percentage": player_hp_percentage,
             "enemy_hp_percentage": enemy_hp_percentage,
+            "enemy_status": enemy_status,  # BURN, PARALYSIS, etc ou None
             "player_hp_critical": player_hp_percentage < 25 if player_hp_percentage is not None else False,
             "player_hp_low": player_hp_percentage < 50 if player_hp_percentage is not None else False,
         }
@@ -323,7 +407,7 @@ class GameStateDetector:
         """
         return self.get_hp_ratio(frame, side)
     
-    def _get_hp_percentage(self, image, roi_key):    def _get_hp_percentage(self, image, roi_key):
+    def _get_hp_percentage(self, image, roi_key):
         """
         Calcula a porcentagem de HP baseado na cor da barra de HP.
         Wrapper para get_hp_ratio que retorna porcentagem (0-100).

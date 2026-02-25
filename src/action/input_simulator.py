@@ -82,6 +82,27 @@ class InputSimulator:
         # 4. Pequeno delay pós-clique
         time.sleep(random.uniform(0.02, 0.08))
     
+    def press_directional_key(self, key):
+        """Pressiona tecla direcional (W/A/S/D) para movimento.
+        
+        Usado para micro-movimentação de escape em obstáculos.
+        
+        Args:
+            key: 'w', 'a', 's', 'd' (cima, esquerda, baixo, direita)
+        """
+        key = key.lower()
+        if key not in ['w', 'a', 's', 'd']:
+            logger.warning(f"Tecla inválida: {key}. Use W/A/S/D.")
+            return
+        
+        # Pressiona e solta tecla com duração curta (~0.1s)
+        pyautogui.keyDown(key)
+        time.sleep(0.1)
+        pyautogui.keyUp(key)
+        
+        # Pequeno delay após movimento
+        time.sleep(0.05)
+    
     def _bezier_move(self, target_x, target_y):
         """Move o mouse em uma curva Bezier suave até o alvo."""
         current_pos = pyautogui.position()
@@ -121,8 +142,8 @@ class InputSimulator:
         if random.random() > self.idle_action_chance:
             return
         
+        # Ações que NÃO movem o personagem
         actions = [
-            lambda: pyautogui.press('space'),  # Pressiona espaço
             lambda: self._random_camera_move(),  # Move câmera
             lambda: time.sleep(random.uniform(0.5, 1.5)),  # Apenas pausa
         ]

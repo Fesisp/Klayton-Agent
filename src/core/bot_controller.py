@@ -72,6 +72,13 @@ class BotController:
         self.target_last_known_pos = None
         self.target_last_seen_time = 0
         self.memory_retention = float(self.cfg.get('follow_settings', {}).get('memory_retention', 10.0))  # 10 segundos
+        
+        # Micro-Movimentação de Escape (detecção de obstáculos)
+        self.last_click_pos = None
+        self.last_click_time = 0
+        self.stuck_threshold = 1.5  # Segundos sem movimento = preso
+        self.escape_attempts = 0
+        self.max_escape_attempts = 4  # Tenta 4 direções antes de desistir
 
         # Tracking de batalha para inferência de velocidade/dano
         self.last_player_hp_percentage = None
@@ -121,7 +128,20 @@ class BotController:
             if distance > self.follow_distance:
                 # Jogador longe: caminha em direção a ele
                 logger.debug(f"👣 Seguindo {self.follow_player_name} (dist: {distance:.0f}px)")
+                
+                # Detecção de Obstáculos: Verifica se está preso
+                current_time = time.time()
+                if self._is_stuck_on_obstacle(player_pos, current_time):
+                    logger.warning("🚧 Obstáculo detectado! Tentando movimento lateral...")
+                    self._perform_escape_movement()
+                    self.last_click_time = current_time
+                    return
+                
+                # Movimento normal
                 self.input.click_at(player_x, player_y)
+                self.last_click_pos = (player_x, player_y)
+                self.last_click_time = current_time
+                self.escape_attempts = 0  # Reset contador de escape
                 time.sleep(0.5)
         else:
             # JOGADOR NÃO ENCONTRADO: Usa memória
@@ -140,7 +160,62 @@ class BotController:
                     self.target_last_known_pos = None  # Limpa memória
                 time.sleep(2.0)
     
-    def _click_near_target(self, target_pos, frame):
+    def _is_stuck_on_obstacle(self, current_target_pos, current_time):
+        """Detecta se o bot está preso em um obstáculo.
+        
+        LÓGICA:
+        Se clicar no mesmo alvo (ou muito próximo) por mais de 1.5s,
+        o bot provavelmente está batendo em uma parede/balcão/NPC.
+        
+        Args:
+            current_target_pos: (x, y) do alvo atual
+            current_time: Timestamp atual
+            
+        Returns:
+            bool: True se preso, False se ok
+        """
+        if not self.last_click_pos or not self.last_click_time:
+            return False
+        
+        # Calcula distância entre alvo atual e último clique
+        dx = current_target_pos[0] - self.last_click_pos[0]
+        dy = current_target_pos[1] - self.last_click_pos[1]
+        distance = (dx**2 + dy**2)**0.5
+        
+        # Se alvo é o mesmo (~10px de diferença) por muito tempo
+        time_stuck = current_time - self.last_click_time
+        
+        if distance < 10 and time_stuck > self.stuck_threshold:
+            return True
+        
+        return False
+    
+    def _perform_escape_movement(self):
+        """Realiza movimento lateral para escapar de obstáculo.
+        
+        ESTRATÉGIA:
+        Tenta 4 direções em sequência: Direita (D), Esquerda (A), Cima (W), Baixo (S)
+        Cada tentativa anda ~2 passos na direção.
+        """
+        directions = ['d', 'a', 'w', 's']
+        current_direction = directions[self.escape_attempts % 4]
+        
+        logger.info(f"🚪 Escape {self.escape_attempts + 1}/4: Movimento {current_direction.upper()}")
+        
+        # Pressiona tecla direcional 2x (2 passos)
+        for _ in range(2):
+            self.input.press_directional_key(current_direction)
+            time.sleep(0.3)
+        
+        self.escape_attempts += 1
+        
+        # Se tentou todas as 4 direções, reseta
+        if self.escape_attempts >= self.max_escape_attempts:
+            logger.warning("⚠️ Escape falhou após 4 tentativas - Aguardando...")
+            self.escape_attempts = 0
+            time.sleep(2.0)  # Pausa antes de tentar novamente
+    
+    def _click_with_offset(self, target_pos, frame):
         """Clica próximo ao alvo com pequena variação para parecer humano."""
         x, y = target_pos
         # Adiciona variação de ±5 pixels
@@ -223,6 +298,10 @@ class BotController:
 
     def handle_shiny(self):
         logger.critical("SHINY ENCONTRADO! ALARME!")
+        
+        # Pausa o bot imediatamente
+        self.paused = True
+        logger.warning("Bot PAUSADO automaticamente devido ao shiny")
 
         # 1) Toca o alarme padrão do PC (beep) algumas vezes
         for _ in range(10):
@@ -233,15 +312,14 @@ class BotController:
         try:
             ctypes.windll.user32.MessageBoxW(
                 0,
-                "Um SHINY foi detectado pelo PokeBot Pro!",
+                "Um SHINY foi detectado pelo PokeBot Pro!\n\nBot PAUSADO. Pressione F6 para retomar.",
                 "PokeBot Pro - SHINY ENCONTRADO",
                 0x00000040,  # MB_ICONINFORMATION
             )
         except Exception as e:
             logger.error(f"Falha ao exibir MessageBox de shiny: {e}")
 
-        # Após alertar, para o bot completamente
-        self.running = False
+        # Bot continua rodando mas pausado, aguardando F6 para retomar
 
     def handle_mission(self, img):
         """Modo MISSION: Segue missões clicando em Talk e Goto."""
@@ -313,10 +391,10 @@ class BotController:
             time.sleep(2) # Espera caminhar
             return
 
-        # 3) Fallback: nenhum talk nem Goto, mantém leve interação
+        # 3) Fallback: nenhum talk nem Goto detectado
+        # Não faz nada para evitar movimento indesejado
         if self.debug:
-            logger.debug("Nenhum talk/goto confiável encontrado. Fallback: pressionando espaço.")
-        self.input.press('space')
+            logger.debug("Nenhum talk/goto confiável encontrado. Aguardando próximo ciclo.")
     
     def handle_hunting(self, img):
         """Modo HUNTING: Movimenta-se aleatoriamente em área de caça para encontrar Pokémon específicos."""
@@ -412,6 +490,23 @@ class BotController:
         # Informações de HP (se disponíveis)
         player_hp = battle_info.get('player_hp_percentage')
         enemy_hp = battle_info.get('enemy_hp_percentage')
+        
+        # NOVO: Status do inimigo detectado via ícone
+        enemy_status = battle_info.get('enemy_status')
+        if enemy_status:
+            logger.info(f"🎯 Status do inimigo detectado: {enemy_status}")
+            # Atualiza TeamManager com status inicial
+            self.team_mgr.set_status(enemy_name, enemy_status)
+            
+            # Log específico para ajustes de dano
+            if enemy_status == "BURN":
+                logger.info("🔥 Inimigo queimado - Ataques físicos dele reduzidos em 50%")
+            elif enemy_status == "PARALYSIS":
+                logger.info("⚡ Inimigo paralisado - Velocidade dele reduzida em 50%")
+            elif enemy_status in ["TOXIC", "POISON"]:
+                logger.info(f"☠️ Inimigo envenenado ({enemy_status}) - Receberá dano residual")
+            elif enemy_status == "SLEEP":
+                logger.info("💤 Inimigo dormindo - Não atacará por alguns turnos")
 
         if enemy_level is not None:
             self.strategy.set_enemy_level(enemy_level)
@@ -550,14 +645,22 @@ class BotController:
                     return
                 else:
                     logger.warning("ROI de menu de troca (switch_menu.container) não configurada; não foi possível trocar.")
-                    debug_dir.mkdir(parents=True, exist_ok=True)
-                    debug_path = debug_dir / f"{my_pokemon_name.lower()}_slot{i}.png"
-                    cv2.imwrite(str(debug_path), move_img)
-                except Exception as e:
-                    logger.error(f"Erro ao salvar imagem de debug do slot {i}: {e}")
+            except Exception as e:
+                logger.error(f"Erro ao tentar trocar de Pokémon: {e}")
 
+        # 4. Ler golpes do Pokémon atual via OCR
+        my_moves = []
+        move_rois = self.cfg.get('rois', {}).get('moves', [])
+        
+        for i, roi_coords in enumerate(move_rois):
+            if not roi_coords or len(roi_coords) < 4:
+                continue
+            
+            move_img = crop_roi_safe(img, roi_coords)
+            if move_img is None:
+                continue
+            
             # Pré-processa texto branco em fundo dinâmico (botão de golpe)
-            # Usa método migrado para OCREngine
             processed = self.ocr.process_dynamic_background_text(move_img)
 
             # Apenas letras e espaços nos nomes de golpes
@@ -573,7 +676,7 @@ class BotController:
             if self.debug:
                 logger.debug(f"Slot {i}: OCR_bruto='{move_text}' | nome_limpo='{move_name}' ROI={roi_coords}")
 
-        # 6. Salvar o que aprendeu (nome real do Pokémon atual)
+        # 5. Salvar o que aprendeu (nome real do Pokémon atual)
         try:
             self.team_mgr.save_moves(my_pokemon_name, my_moves)
             if self.debug:

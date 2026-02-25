@@ -85,17 +85,19 @@ class HotkeyListener:
         self.running = True
         
         # Cria listener com callbacks para cada combinação
+        # pynput usa sintaxe <key> para teclas especiais
         hotkey_combinations = {}
         for key, command in self.hotkeys.items():
-            # Remove < e > da tecla
-            clean_key = key.strip('<>')
-            hotkey_combinations[clean_key] = lambda cmd=command: self._on_hotkey(cmd)
+            hotkey_combinations[key] = lambda cmd=command: self._on_hotkey(cmd)
         
         # Inicia listener global
-        self.listener = keyboard.GlobalHotKeys(hotkey_combinations)
-        self.listener.start()
-        
-        logger.info("✅ Hotkey listener ativo! Pressione as teclas para controlar o bot.")
+        try:
+            self.listener = keyboard.GlobalHotKeys(hotkey_combinations)
+            self.listener.start()
+            logger.info("✅ Hotkey listener ativo! Pressione as teclas para controlar o bot.")
+        except Exception as e:
+            logger.error(f"Erro ao iniciar GlobalHotKeys: {e}")
+            raise
     
     def stop(self):
         """Para o listener."""
