@@ -73,13 +73,6 @@ class BotController:
         self.target_last_known_pos = None
         self.target_last_seen_time = 0
         self.memory_retention = float(self.cfg.get('follow_settings', {}).get('memory_retention', 10.0))  # 10 segundos
-        
-        # Micro-Movimentação de Escape (detecção de obstáculos)
-        self.last_click_pos = None
-        self.last_click_time = 0
-        self.stuck_threshold = 1.5  # Segundos sem movimento = preso
-        self.escape_attempts = 0
-        self.max_escape_attempts = 4  # Tenta 4 direções antes de desistir
 
         # Tracking de batalha para inferência de velocidade/dano
         self.last_player_hp_percentage = None
@@ -392,301 +385,81 @@ class BotController:
             time.sleep(random.uniform(1.0, 2.0))
 
     def handle_battle(self, img):
-        # Proteção: se por algum motivo a HUD de batalha sumiu, não atacar
-        if self.detector.detect_state(img) != GameState.IN_BATTLE:
-            if self.debug:
-                logger.debug("handle_battle chamado mas estado não é IN_BATTLE. Abortando ações de ataque.")
-            return
-
-        # Sempre garantir que o menu de batalha está focado em FIGHT primeiro
-        try:
-            # Tenta clicar no FIGHT. Se funcionar, espera um pouco para menu aparecer.
-            # Idealmente poderia ter um loop verificando se o menu de golpes abriu.
-            self.input.click_fight_button(img)
-            
-            fight_delay = self.cfg.get('battle', {}).get('fight_to_moves_delay', 1.2)
-            
-            # Pequeno loop de espera ativa (opcional) ou sleep simples
-            # Por segurança, mantemos o sleep mas logamos
-            if self.debug:
-                logger.debug(f"Aguardando {fight_delay}s para menu de golpes abrir...")
-            time.sleep(fight_delay)
-            
-        except Exception as e:
-            logger.error(f"Erro ao clicar no FIGHT inicial: {e}")
-
-        # Após o clique em FIGHT e o pequeno delay, captura um novo frame
-        # para garantir que o menu de golpes já esteja completamente renderizado.
+        """Loop de batalha ÚNICO e centralizado - Versão Ultra-Otimizada.
+        
+        FILOSOFIA:
+        - Percepção rápida via HSV pixels (sem OCR para HP)
+        - Delegação 100% de decisões para BattleStrategy
+        - Código limpo focado em orquestração, não em lógica
+        """
+        # 1. Garante que o menu está aberto
+        self.input.click_fight_button(img)
+        time.sleep(self.cfg.get('battle', {}).get('fight_to_moves_delay', 1.2))
         img = self.cap.capture()
 
-        # 1. Ler Inimigo
-        battle_info = self.detector.get_battle_info(img)
+        # 2. Percepção Ultra-Rápida (Apenas Pixels HSV, sem OCR para HP)
+        battle_info = self.detector.get_battle_info(img)  # Já usa get_hp_ratio_by_pixel
         enemy_name = battle_info.get('enemy_name', '').strip()
-        my_pokemon_name = battle_info.get('player_name', '').strip() or "MeuPokemonAtual"
-        enemy_level = battle_info.get('enemy_level')
+        my_pokemon = battle_info.get('player_name', '').strip() or "MeuPokemon"
         
-        # Informações de HP (se disponíveis)
-        player_hp = battle_info.get('player_hp_percentage')
-        enemy_hp = battle_info.get('enemy_hp_percentage')
+        # 3. Inteligência de Troca de Emergência (Setup Bait / Sleep)
+        # Delegar 100% à Advanced Battle Strategy
+        best_slot = self.strategy.get_best_move(my_pokemon, enemy_name)
+
+        if best_slot == -1:  # Sinal de SWITCH_PRIORITY da estratégia
+            self._execute_emergency_switch(enemy_name, img)
+            return
+
+        # 4. Execução do Golpe
+        logger.info(f"⚔️ [BATTLE] Atacando slot {best_slot} contra {enemy_name}")
+        self.input.click_in_slot(best_slot)
         
-        # NOVO: Status do inimigo detectado via ícone
-        enemy_status = battle_info.get('enemy_status')
-        if enemy_status:
-            logger.info(f"🎯 Status do inimigo detectado: {enemy_status}")
-            # Atualiza TeamManager com status inicial
-            self.team_mgr.set_status(enemy_name, enemy_status)
-            
-            # Log específico para ajustes de dano
-            if enemy_status == "BURN":
-                logger.info("🔥 Inimigo queimado - Ataques físicos dele reduzidos em 50%")
-            elif enemy_status == "PARALYSIS":
-                logger.info("⚡ Inimigo paralisado - Velocidade dele reduzida em 50%")
-            elif enemy_status in ["TOXIC", "POISON"]:
-                logger.info(f"☠️ Inimigo envenenado ({enemy_status}) - Receberá dano residual")
-            elif enemy_status == "SLEEP":
-                logger.info("💤 Inimigo dormindo - Não atacará por alguns turnos")
-
-        if enemy_level is not None:
-            self.strategy.set_enemy_level(enemy_level)
-
-        damage_received = 0
-        damage_to_enemy = 0
-        if self.last_player_hp_percentage is not None and player_hp is not None:
-            damage_received = max(0, self.last_player_hp_percentage - player_hp)
-        if self.last_enemy_hp_percentage is not None and enemy_hp is not None:
-            damage_to_enemy = max(0, self.last_enemy_hp_percentage - enemy_hp)
-
-        i_attacked_first = None
-        if damage_received > 0 and damage_to_enemy <= 0:
-            i_attacked_first = False
-        elif damage_to_enemy > 0 and damage_received <= 0:
-            i_attacked_first = True
-
-        if i_attacked_first is not None:
-            expected_damage = self.last_damage_received if self.last_damage_received > 0 else 0
-            self.strategy.record_turn_result(i_attacked_first, damage_received, expected_damage)
-            self.team_mgr.set_outspeeded_last_turn(not i_attacked_first)
-
-        if damage_received > 0:
-            self.last_damage_received = damage_received
-
-        if self.debug:
-            logger.debug(f"Inimigo: '{enemy_name}' | Meu Pokémon: '{my_pokemon_name}'")
-            if player_hp is not None:
-                logger.debug(f"HP Player: {player_hp}% | HP Inimigo: {enemy_hp}%")
+        # 5. Cooldown adaptativo
+        time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 4.0))
+    
+    def _execute_emergency_switch(self, enemy_name, img):
+        """Executa troca de emergência quando estratégia retorna -1.
         
-        # VERIFICAÇÃO ESPECIAL: Modo HUNTING
-        # Se estamos caçando e o Pokémon NÃO é o alvo, fugir imediatamente
-        if self.behavior == BotBehavior.HUNTING and self.hunt_target_pokemon:
-            enemy_key = enemy_name.lower().strip()
-            targets_lower = [t.lower().strip() for t in self.hunt_target_pokemon]
-            
-            if enemy_key not in targets_lower:
-                logger.info(f"[HUNTING] '{enemy_name}' não é alvo de caça. Fugindo...")
-                try:
-                    self.input.click_run_button(img)
-                    time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 2.5))
-                    return
-                except Exception as e:
-                    logger.error(f"Erro ao fugir de não-alvo: {e}")
-            else:
-                logger.info(f"✨ [HUNTING] ALVO ENCONTRADO: {enemy_name}! Preparando batalha...")
-
-        # 2. Decidir se deve fugir (blacklist padrão, independente do modo)
-        try:
-            if self.strategy.should_flee(my_pokemon_name, enemy_name):
-                logger.info(f"Decisão de FUGIR da batalha contra {enemy_name}.")
-                try:
-                    self.input.click_run_button(img)
-                    time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 2.5))
-                    return
-                except Exception as e_click:
-                    logger.error(f"Erro ao clicar em RUN via template: {e_click}")
-        except Exception as e:
-            logger.error(f"Erro ao decidir fuga: {e}")
+        Args:
+            enemy_name: Nome do inimigo
+            img: Frame atual
+        """
+        logger.critical("🔄 Motor de Risco recomendou TROCA OBRIGATÓRIA!")
         
-        # 3. Moves de cura são priorizados em get_best_move (sem uso de poções)
-        
-        # 4. Verificar se deve trocar Pokémon (HP baixo)
-        if self.strategy.should_switch_pokemon(my_pokemon_name, enemy_name, player_hp_percentage=player_hp):
-            logger.warning(f"🔄 HP baixo ({player_hp}%)! Recomendado trocar Pokémon.")
-            # Lógica de troca já existe abaixo, mas podemos forçar aqui se necessário
-
-        # 3. (opcional) Tentar trocar de Pokémon se houver alguém claramente vantajoso
         try:
             switch_idx = self.strategy.choose_switch_target(enemy_name)
         except Exception as e:
-            logger.error(f"Erro ao decidir troca de Pokémon: {e}")
-            switch_idx = None
-
-        if switch_idx is not None:
-            logger.info(f"Decisão de TROCAR para o slot {switch_idx} da equipe contra {enemy_name}.")
-            try:
-                # Abre menu de POKEMON pelo botão com ROI/template existente
-                self.input.click_pokemon_button(img)
-                time.sleep(0.6)
-
-                # Usa menu de troca configurado em rois.switch_menu e OCR especializado
-                switch_cfg = self.cfg.get('rois', {}).get('switch_menu', {})
-                container = switch_cfg.get('container')
-                slot_h = int(switch_cfg.get('slot_height', 30))
-
-                if container and len(container) == 4:
-                    x1, y1, x2, y2 = container
-                    if x2 <= x1 or y2 <= y1:
-                        x, y, w, h = container
-                        x1, y1, x2, y2 = int(x), int(y), int(x + w), int(y + h)
-                    h_img, w_img = img.shape[:2]
-                    x1 = max(0, min(int(x1), w_img - 1))
-                    x2 = max(0, min(int(x2), w_img))
-                    y1 = max(0, min(int(y1), h_img - 1))
-                    y2 = max(0, min(int(y2), h_img))
-
-                    # OCR da lista inteira com método especializado
-                    menu_img = img[y1:y2, x1:x2]
-                container = switch_cfg.get('container')
-                slot_h = int(switch_cfg.get('slot_height', 30))
-
-                norm_container = normalize_roi(container)
-                if norm_container:
-                    x1, y1, x2, y2 = norm_container
-                    
-                    # Usa crop_roi_safe se quiser OCR (mas aqui precisamos de Coordenadas Absolutas para Click)
-                    # O OCR usa a imagem recortada, o Click usa coordenadas absolutas.
-                    
-                    # 1. Recorta para OCR
-                    menu_img = crop_roi_safe(img, container)
-                    
-                    # 2. OCR da lista
-                    detected_names = self.ocr.ocr_party_list(menu_img)
-
-                    # Atualiza equipe atual com o que foi lido
-                    self.team_mgr.update_team_from_hud(detected_names)
-
-                    # Clica na linha correspondente ao índice sugerido (com aleatoriedade segura)
-                    idx = max(0, min(int(switch_idx), max(len(detected_names) - 1, 0)))
-                    
-                    slot_y1 = y1 + idx * slot_h
-                    slot_y2 = slot_y1 + slot_h
-                    slot_roi = [x1, slot_y1, x2, slot_y2]
-                    
-                    cx, cy = get_safe_random_point(slot_roi, 0.2)
-
-                    if self.debug:
-                        logger.debug(f"Clicando no slot de equipe {idx} em ({cx}, {cy}) para trocar Pokémon. Nomes detectados: {detected_names}")
-                    self.input.click(cx, cy)
-
-                    # Pequena espera para animação de troca
-                    time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 2.5))
-
-                    # Depois da troca, não ataca neste tick; deixa próxima iteração decidir
-                    return
-                else:
-                    logger.warning("ROI de menu de troca (switch_menu.container) não configurada; não foi possível trocar.")
-            except Exception as e:
-                logger.error(f"Erro ao tentar trocar de Pokémon: {e}")
-
-        # 4. Ler golpes do Pokémon atual via OCR
-        my_moves = []
-        move_rois = self.cfg.get('rois', {}).get('moves', [])
+            logger.error(f"Erro ao escolher alvo de troca: {e}")
+            return
         
-        for i, roi_coords in enumerate(move_rois):
-            if not roi_coords or len(roi_coords) < 4:
-                continue
-            
-            move_img = crop_roi_safe(img, roi_coords)
-            if move_img is None:
-                continue
-            
-            # Pré-processa texto branco em fundo dinâmico (botão de golpe)
-            processed = self.ocr.process_dynamic_background_text(move_img)
-
-            # Apenas letras e espaços nos nomes de golpes
-            move_text_raw = self.ocr.extract_text_optimized(
-                processed,
-                whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ",
-                invert_for_white_text=False
-            )
-            move_text = move_text_raw.replace('\n', ' ').strip()
-            move_name = self.ocr.clean_move_name(move_text)
-            my_moves.append(move_name)
-
-            if self.debug:
-                logger.debug(f"Slot {i}: OCR_bruto='{move_text}' | nome_limpo='{move_name}' ROI={roi_coords}")
-
-        # 5. Salvar o que aprendeu (nome real do Pokémon atual)
-        try:
-            self.team_mgr.save_moves(my_pokemon_name, my_moves)
-            if self.debug:
-                logger.debug(f"Golpes salvos para '{my_pokemon_name}': {my_moves}")
-        except Exception as e:
-            logger.error(f"Erro ao salvar movimentos: {e}")
-
-        # 7. Decidir Ataque usando estratégia (com avaliação de risco)
-        try:
-            best_slot = self.strategy.get_best_move(my_pokemon_name, enemy_name)
-        except Exception as e:
-            logger.error(f"Erro na estratégia de batalha: {e}")
-            best_slot = 0
+        if switch_idx is None:
+            logger.warning("⚠️ Troca recomendada mas nenhum alvo disponível")
+            return
         
-        # Verificar se estratégia retornou -1 (sinal de SWITCH_PRIORITY)
-        if best_slot == -1:
-            logger.critical("🔄 Motor de Risco recomendou TROCA OBRIGATÓRIA!")
+        logger.info(f"🔄 Executando troca de emergência para slot {switch_idx}")
+        
+        try:
+            # Abre menu de POKEMON
+            self.input.click_pokemon_button(img)
+            time.sleep(0.6)
             
-            # Tentar escolher alvo de troca
-            try:
-                switch_idx = self.strategy.choose_switch_target(enemy_name)
-            except Exception as e:
-                logger.error(f"Erro ao escolher alvo de troca: {e}")
-                switch_idx = None
+            # Clica no slot escolhido
+            switch_cfg = self.cfg.get('rois', {}).get('switch_menu', {})
+            container = switch_cfg.get('container')
+            slot_h = int(switch_cfg.get('slot_height', 30))
             
-            if switch_idx is not None:
-                logger.info(f"🔄 Executando troca de emergência para slot {switch_idx}")
+            norm_container = normalize_roi(container)
+            if norm_container:
+                x1, y1, x2, y2 = norm_container
+                slot_y1 = y1 + switch_idx * slot_h
+                slot_y2 = slot_y1 + slot_h
+                slot_roi = [x1, slot_y1, x2, slot_y2]
+                cx, cy = get_safe_random_point(slot_roi, 0.2)
                 
-                try:
-                    # Abre menu de POKEMON
-                    self.input.click_pokemon_button(img)
-                    time.sleep(0.6)
-                    
-                    # Clica no slot escolhido
-                    switch_cfg = self.cfg.get('rois', {}).get('switch_menu', {})
-                    container = switch_cfg.get('container')
-                    slot_h = int(switch_cfg.get('slot_height', 30))
-                    
-                    norm_container = normalize_roi(container)
-                    if norm_container:
-                        x1, y1, x2, y2 = norm_container
-                        slot_y1 = y1 + switch_idx * slot_h
-                        slot_y2 = slot_y1 + slot_h
-                        slot_roi = [x1, slot_y1, x2, slot_y2]
-                        cx, cy = get_safe_random_point(slot_roi, 0.2)
-                        
-                        self.input.click(cx, cy)
-                        time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 2.5))
-                        return
-                except Exception as e:
-                    logger.error(f"Erro ao executar troca de emergência: {e}")
-                    # Se falhar, tenta atacar como fallback
-                    best_slot = 0
-            else:
-                logger.warning("⚠️ Troca recomendada mas nenhum alvo disponível, atacando como fallback")
-                best_slot = 0
-
-        if self.debug:
-            logger.debug(f"Estratégia escolheu slot {best_slot} para {my_pokemon_name} vs {enemy_name}")
-
-        # 8. Atacar clicando no slot escolhido
-        logger.info(f"Atacando slot {best_slot} contra {enemy_name} | Moves: {my_moves}")
-        try:
-            self.input.click_in_slot(best_slot)
+                self.input.click(cx, cy)
+                time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 2.5))
         except Exception as e:
-            logger.error(f"Erro ao clicar no slot de ataque: {e}")
-
-        self.last_player_hp_percentage = player_hp
-        self.last_enemy_hp_percentage = enemy_hp
-
-        # Espera animação de ataque/botões reaparecerem (mais paciente)
-        time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 4.0))
+            logger.error(f"Erro ao executar troca de emergência: {e}")
     
     def _recovery_search(self):
         """Tenta recuperar visão do alvo quando perdido (método auxiliar de FOLLOW)."""
@@ -760,218 +533,3 @@ class BotController:
         except Exception as e:
             logger.error(f"Erro no template matching: {e}")
             return None
-
-        """Modo FOLLOW: Segue o personagem principal do jogador com memória e resiliência."""
-        
-        # Verificar se passou tempo suficiente desde a última verificação
-        current_time = time.time()
-        if current_time - self.last_follow_check < self.follow_check_interval:
-            return
-        
-        self.last_follow_check = current_time
-        
-        # Tenta localizar o alvo
-        target_pos = None
-        
-        # Método 1: Procurar por nome (se configurado)
-        if self.follow_player_name:
-            target_pos = self.detector.find_player_name(img, self.follow_player_name)
-            
-            if target_pos:
-                if self.debug:
-                    logger.debug(f"[FOLLOW] Nome '{self.follow_player_name}' encontrado em {target_pos}")
-        
-        # Método 2: Template matching (fallback ou principal)
-        if not target_pos and self.follow_method == 'template':
-            target_pos = self._follow_by_template_get_pos(img)
-        
-        # Método 3: Party button
-        elif not target_pos and self.follow_method == 'party_button':
-            self._follow_by_party_button(img)
-            return  # Party button não retorna posição, apenas clica
-        
-        # Se encontrou o alvo
-        if target_pos:
-            # Atualiza memória de curto prazo
-            self.last_seen_pos = target_pos
-            self.last_seen_time = current_time
-            
-            # Move em direção ao alvo
-            self._click_near_target(target_pos, img)
-        
-        else:
-            # Alvo perdido - usa memória de curto prazo
-            if self.last_seen_pos and (current_time - self.last_seen_time) < self.follow_lost_target_timeout:
-                if self.debug:
-                    logger.debug(f"[FOLLOW] Alvo perdido. Movendo para última posição vista: {self.last_seen_pos}")
-                
-                # Move para a última posição conhecida
-                self._click_near_target(self.last_seen_pos, img)
-            
-            else:
-                # Timeout atingido - modo de recuperação
-                if self.debug:
-                    logger.debug("[FOLLOW] Alvo perdido há muito tempo. Modo de espera...")
-                
-                # Limpa memória
-                self.last_seen_pos = None
-                
-                # Ocasionalmente gira câmera ou dá pequenos passos para tentar reencontrar
-                if random.random() < 0.3:  # 30% de chance
-                    self._recovery_search()
-    
-    def _click_near_target(self, target_pos, img):
-        """Clica próximo ao alvo para segui-lo."""
-        target_x, target_y = target_pos
-        
-        # Calcula centro da tela
-        screen_h, screen_w = img.shape[:2]
-        center_x = screen_w // 2
-        center_y = screen_h // 2
-        
-        # Calcula distância do alvo ao centro
-        distance = ((target_x - center_x) ** 2 + (target_y - center_y) ** 2) ** 0.5
-        
-        if distance > self.follow_distance:
-            # Clica na direção do alvo (não diretamente nele, mas 70% do caminho)
-            # Isso cria movimento mais natural e evita "vibração"
-            move_x = center_x + int((target_x - center_x) * 0.7)
-            move_y = center_y + int((target_y - center_y) * 0.7)
-            
-            logger.info(f"👤 [FOLLOW] Seguindo alvo em ({move_x}, {move_y}) | distância: {distance:.0f}px")
-            self.input.click(move_x, move_y)
-            
-            # Delay proporcional à distância (mais longe = mais tempo de caminhada)
-            walk_time = min(1.5, max(0.3, distance / 500))
-            time.sleep(walk_time)
-        else:
-            if self.debug:
-                logger.debug(f"[FOLLOW] Alvo próximo (distância: {distance:.0f}px < {self.follow_distance}px)")
-    
-    def _recovery_search(self):
-        """Tenta recuperar visão do alvo quando perdido."""
-        if self.debug:
-            logger.debug("[FOLLOW] Executando busca de recuperação...")
-        
-        # Opção 1: Girar câmera
-        if random.random() < 0.5:
-            # Pressiona tecla de rotação de câmera (Q ou E)
-            rotate_key = random.choice(['q', 'e'])
-            if self.debug:
-                logger.debug(f"[FOLLOW] Girando câmera ({rotate_key})...")
-            self.input.press(rotate_key)
-            time.sleep(0.3)
-        
-        # Opção 2: Dar pequenos passos aleatórios
-        else:
-            directions = ['w', 'a', 's', 'd']
-            direction = random.choice(directions)
-            if self.debug:
-                logger.debug(f"[FOLLOW] Dando passos ({direction})...")
-            for _ in range(3):
-                self.input.press(direction)
-                time.sleep(0.1)
-        
-        # Pequena pausa após recuperação
-        time.sleep(random.uniform(0.5, 1.0))
-    
-    def _follow_by_template_get_pos(self, img):
-        """
-        Versão do _follow_by_template que retorna a posição ao invés de clicar diretamente.
-        Retorna (x, y) do alvo ou None se não encontrado.
-        """
-        # Carrega template do personagem (se configurado)
-        follow_cfg = self.cfg.get('follow', {})
-        player_template_name = follow_cfg.get('player_template', 'player_char.png')
-        
-        assets_dir = self.cfg.get('assets', {}).get('templates_dir', 'assets/templates/')
-        player_template_path = assets_dir + player_template_name
-        
-        # Tenta carregar template
-        if not hasattr(self, '_player_template'):
-            try:
-                self._player_template = cv2.imread(player_template_path)
-                if self._player_template is None:
-                    logger.warning(f"Template de personagem não encontrado: {player_template_path}")
-                    logger.info("💡 Dica: Capture uma imagem do seu personagem e salve como player_char.png")
-                    return None
-            except Exception as e:
-                logger.error(f"Erro ao carregar template do personagem: {e}")
-                return None
-        
-        if self._player_template is None:
-            return None
-        
-        # Procura o personagem na tela
-        try:
-            res = cv2.matchTemplate(img, self._player_template, cv2.TM_CCOEFF_NORMED)
-            _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            
-            threshold = float(follow_cfg.get('match_threshold', 0.7))
-            
-            if max_val >= threshold:
-                h, w = self._player_template.shape[:2]
-                player_x = max_loc[0] + w // 2
-                player_y = max_loc[1] + h // 2
-                
-                return (player_x, player_y)
-            else:
-                if self.debug:
-                    logger.debug(f"[FOLLOW] Template não detectado (score: {max_val:.3f} < {threshold})")
-                return None
-        
-        except Exception as e:
-            logger.error(f"Erro ao procurar template: {e}")
-            return None
-    
-    
-    def _follow_by_party_button(self, img):
-        """Segue o personagem usando o botão Follow da party."""
-        
-        # Esta opção assume que existe um botão "Follow" visível na tela
-        # quando você está em party com outra conta
-        
-        follow_cfg = self.cfg.get('follow', {})
-        follow_button_template_name = follow_cfg.get('follow_button_template', 'follow_button.png')
-        
-        assets_dir = self.cfg.get('assets', {}).get('templates_dir', 'assets/templates/')
-        follow_button_path = assets_dir + follow_button_template_name
-        
-        # Tenta carregar template do botão Follow
-        if not hasattr(self, '_follow_button_template'):
-            try:
-                self._follow_button_template = cv2.imread(follow_button_path)
-                if self._follow_button_template is None:
-                    logger.warning(f"Template do botão Follow não encontrado: {follow_button_path}")
-                    logger.info("💡 Dica: Capture uma imagem do botão 'Follow' e salve como follow_button.png")
-                    return
-            except Exception as e:
-                logger.error(f"Erro ao carregar template do botão Follow: {e}")
-                return
-        
-        if self._follow_button_template is None:
-            return
-        
-        # Procura o botão Follow na tela
-        try:
-            res = cv2.matchTemplate(img, self._follow_button_template, cv2.TM_CCOEFF_NORMED)
-            _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            
-            threshold = float(follow_cfg.get('button_threshold', 0.75))
-            
-            if max_val >= threshold:
-                h, w = self._follow_button_template.shape[:2]
-                button_x = max_loc[0] + w // 2
-                button_y = max_loc[1] + h // 2
-                
-                logger.info(f"👤 [FOLLOW] Clicando no botão Follow em ({button_x}, {button_y})")
-                self.input.click(button_x, button_y)
-                
-                # Delay após clicar no botão
-                time.sleep(random.uniform(0.3, 0.7))
-            else:
-                if self.debug:
-                    logger.debug(f"[FOLLOW] Botão Follow não detectado (score: {max_val:.3f})")
-        
-        except Exception as e:
-            logger.error(f"Erro ao seguir por botão: {e}")
