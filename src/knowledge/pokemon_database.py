@@ -1,324 +1,295 @@
-import json
-from pathlib import Path
-from loguru import logger
+"""
+PokemonDatabase: Interface SQLite para Dados de Pokémon
 
+Fornece acesso rápido aos dados da Pokedex via SQLite ao invés de carregar
+JSON pesado na memória.
+
+Métodos principais:
+- get_pokemon_data(name): Retorna dados completos de um Pokémon
+- get_pokemon_moves(name): Retorna apenas movimentos aprendidos
+- search_by_type(type_name): Busca Pokémons por tipo
+- get_pokemon_stats(name): Retorna base_stats
+"""
+
+import sqlite3
+from pathlib import Path
+from typing import Optional, Dict, List, Any
 
 class PokemonDatabase:
-    """Fornece dados de Pokémon, tipos e golpes para a BattleStrategy.
-
-    Carrega tanto os arquivos legados (dex.json, tipos.json, movimentos.json)
-    como os caches da PokeAPI (pokeapi_pokemon.json, pokeapi_moves.json) e
-    uma matriz de eficácia de tipos (type_efficacy.json).
-    """
-
-    def __init__(self, data_path: str = "data"):
-        self.data_dir = Path(data_path)
-
-        # Bases legadas
-        self.dex_legacy = self._load_json("dex.json")
-        self.types_legacy = self._load_json("tipos.json")
-        self.moves_legacy = self._load_json("movimentos.json")
-
-        # Bases derivadas da PokeAPI
-        self.pokeapi_pokemon = self._load_json("pokeapi_pokemon.json")
-        self.pokeapi_moves = self._load_json("pokeapi_moves.json")
-        self.type_efficacy = self._load_json("type_efficacy.json")
-
-    def _load_json(self, filename: str):
-        path = self.data_dir / filename
-        if not path.exists():
-            return {}
-        try:
-            with path.open("r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Erro ao carregar {filename}: {e}")
-            return {}
-
-    # ---------- Tipos / Fraquezas ----------
-
-    def get_pokemon_types(self, pokemon_name: str):
-        """Retorna lista de type_ids do Pokémon.
-
-        Usa `pokeapi_pokemon.json` quando disponível, com fallback para `dex.json`.
-        """
-        if not pokemon_name:
-            return []
-
-        key = pokemon_name.strip().lower()
-        data = self.pokeapi_pokemon.get(key)
-        if data and "types" in data:
-            return data["types"]
-
-        # Fallback para dex antigo, tentando variações de nome
-        legacy = (
-            self.dex_legacy.get(pokemon_name)
-            or self.dex_legacy.get(pokemon_name.capitalize())
-            or self.dex_legacy.get(pokemon_name.lower())
-        )
-        if legacy:
-            return legacy.get("tipos", [])
-
-        return []
-
-    def get_weaknesses(self, pokemon_name: str):
-        """Retorna lista de type_ids ou nomes de tipos aos quais o Pokémon é fraco.
-
-        Se `type_efficacy.json` estiver disponível, calcula a partir da matriz.
-        Caso contrário, usa `tipos.json` legado.
-        """
-        if not pokemon_name:
-            return []
-
-        enemy_types = self.get_pokemon_types(pokemon_name)
-        if enemy_types and self.type_efficacy:
-            weak_to = set()
-            for target_type in enemy_types:
-                rels = self.type_efficacy.get(str(target_type), {})
-                for atk_type, mult in rels.items():
-                    try:
-                        if float(mult) >= 2.0:
-                            weak_to.add(str(atk_type))
-                    except (TypeError, ValueError):
-                        continue
-            return list(weak_to)
-
-        # Fallback para dados legados, se existirem
-        legacy = (
-            self.dex_legacy.get(pokemon_name)
-            or self.dex_legacy.get(pokemon_name.capitalize())
-            or self.dex_legacy.get(pokemon_name.lower())
-        )
-        if legacy:
-            weaknesses = set()
-            for p_type in legacy.get("tipos", []):
-                type_info = self.types_legacy.get(p_type, {})
-                weaknesses.update(type_info.get("fraquezas", []))
-            return list(weaknesses)
-
-        return []
-
-    def get_type_multiplier(self, move_type_id, enemy_types):
-        """Retorna multiplicador total de tipo (float) para um golpe.
-
-        enemy_types é uma lista de type_ids (strings ou ints).
-        """
-        if not move_type_id or not enemy_types or not self.type_efficacy:
-            return 1.0
-
-        rels = self.type_efficacy.get(str(move_type_id), {})
-        if not rels:
-            return 1.0
-
-        mult = 1.0
-        for t in enemy_types:
-            try:
-                m = float(rels.get(str(t), 1.0) or 1.0)
-            except (TypeError, ValueError):
-                m = 1.0
-            mult *= m
-
-        return mult
-
-    # ---------- Golpes ----------
-
-    def get_move_data(self, move_name: str):
-        """Retorna dados de um golpe em formato compatível com BattleStrategy.
-
-        Formato esperado:
-        {
-            "type_id": <int ou str>,
-            "power": <int>,
-            "category_id": <int ou str>,
-        }
-
-        Tenta primeiro `pokeapi_moves.json` (chave em lower), depois `movimentos.json`
-        legado (nome exato ou Title Case). Se nada encontrado, retorna dict vazio.
-        """
-        if not move_name:
-            return {}
-
-        key = move_name.strip().lower()
-
-        # PokeAPI moves
-        data = self.pokeapi_moves.get(key)
-        if data:
-            return {
-                "type_id": data.get("type_id"),
-                "power": data.get("power", 0),
-                "category_id": data.get("category_id"),
-            }
-
-        # Fallback: base legada de movimentos
-        legacy = self.moves_legacy.get(move_name) or self.moves_legacy.get(move_name.title())
-        if legacy:
-            return {
-                "type_id": legacy.get("type_id") or legacy.get("tipo_id") or legacy.get("tipo"),
-                "power": legacy.get("power", 0) or legacy.get("poder", 0),
-                "category_id": legacy.get("category_id") or legacy.get("categoria_id") or legacy.get("categoria"),
-            }
-
-        logger.debug(f"Dados de golpe não encontrados para '{move_name}'")
-        return {}
+    def __init__(self):
+        self.db_path = Path(__file__).parent.parent.parent / 'data' / 'pokedex.db'
+        
+        if not self.db_path.exists():
+            raise FileNotFoundError(f"❌ Banco de dados não encontrado: {self.db_path}")
     
-    def get_base_stats(self, pokemon_name: str):
-        """Retorna stats base do Pokémon (HP, Attack, Defense, SpA, SpD, Speed).
+    def _get_connection(self):
+        """Cria conexão com o banco de dados."""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def get_pokemon_data(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Busca todos os dados de um Pokémon específico no SQLite.
         
         Args:
-            pokemon_name: Nome do Pokémon
-            
+            name: Nome do Pokémon (case-insensitive)
+        
         Returns:
-            Dict com keys: hp, attack, defense, special_attack, special_defense, speed
-            Ou None se Pokémon não encontrado
+            Dict com: id, tipos, abilities, base_stats, altura, peso, movimientos_por_nivel
+            None se Pokémon não encontrado
         """
-        if not pokemon_name:
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        # Normalizar nome
+        normalized_name = name.strip().title()
+
+        # Buscar dados base
+        cursor.execute("SELECT * FROM pokemon WHERE name = ?", (normalized_name,))
+        row = cursor.fetchone()
+        
+        if not row:
+            conn.close()
             return None
-        
-        key = pokemon_name.strip().lower()
-        
-        # Tenta pokeapi_pokemon primeiro
-        data = self.pokeapi_pokemon.get(key)
-        if data and "stats" in data:
-            stats = data["stats"]
-            return {
-                "hp": stats.get("hp", 0),
-                "attack": stats.get("attack", 0),
-                "defense": stats.get("defense", 0),
-                "special_attack": stats.get("special-attack", 0),
-                "special_defense": stats.get("special-defense", 0),
-                "speed": stats.get("speed", 0)
-            }
-        
-        # Fallback: dex legacy
-        legacy = self.dex_legacy.get(key)
-        if legacy and "stats" in legacy:
-            stats = legacy["stats"]
-            return {
-                "hp": stats.get("hp", 0),
-                "attack": stats.get("attack", 0),
-                "defense": stats.get("defense", 0),
-                "special_attack": stats.get("special_attack", 0) or stats.get("special-attack", 0),
-                "special_defense": stats.get("special_defense", 0) or stats.get("special-defense", 0),
-                "speed": stats.get("speed", 0)
-            }
-        
-        logger.warning(f"Stats base não encontrados para '{pokemon_name}'")
-        return None
-    
-    def estimate_stat(self, base_stat, level, iv=31, ev=252, nature=1.0):
-        """Calcula stat real usando a fórmula de Pokémon.
-        
-        Args:
-            base_stat: Stat base do Pokémon
-            level: Nível atual
-            iv: Individual Value (0-31, padrão 31 = pior caso)
-            ev: Effort Value (0-252, padrão 252 = pior caso)
-            nature: Multiplicador de nature (1.1 para +, 0.9 para -, 1.0 neutro)
-            
-        Returns:
-            int: Stat calculado
-        """
-        return int(((base_stat * 2 + iv + (ev // 4)) * level / 100 + 5) * nature)
-    
-    def estimate_max_stats(self, pokemon_name: str, level: int):
-        """Calcula stats máximos possíveis assumindo IVs/EVs perfeitos (Worst-Case Scenario).
-        
-        Este método é crítico para nunca subestimar o inimigo. Assume:
-        - IVs máximos (31)
-        - EVs máximos (252)
-        - Nature favorável (+10%)
-        
-        Args:
-            pokemon_name: Nome do Pokémon inimigo
-            level: Nível do inimigo
-            
-        Returns:
-            Dict com stats máximos: hp, attack, defense, special_attack, special_defense, speed
-        """
-        base_stats = self.get_base_stats(pokemon_name)
-        if not base_stats:
-            logger.warning(f"Stats base não encontrados para '{pokemon_name}' - usando valores médios")
-            # Valores médios defensivos para não arriscar
-            return {
-                'hp': 100,
-                'attack': 100,
-                'defense': 100,
-                'special_attack': 100,
-                'special_defense': 100,
-                'speed': 100
-            }
-        
-        # Calcula com IVs/EVs máximos + nature favorável para cada stat
-        return {
-            'hp': self.estimate_stat(base_stats['hp'], level, iv=31, ev=252, nature=1.0),  # HP não tem nature
-            'attack': self.estimate_stat(base_stats['attack'], level, iv=31, ev=252, nature=1.1),
-            'defense': self.estimate_stat(base_stats['defense'], level, iv=31, ev=252, nature=1.1),
-            'special_attack': self.estimate_stat(base_stats['special_attack'], level, iv=31, ev=252, nature=1.1),
-            'special_defense': self.estimate_stat(base_stats['special_defense'], level, iv=31, ev=252, nature=1.1),
-            'speed': self.estimate_stat(base_stats['speed'], level, iv=31, ev=252, nature=1.1)
+
+        pokemon = {
+            "name": row['name'],
+            "id": row['id'],
+            "base_stats": {
+                "hp": row['hp'],
+                "attack": row['attack'],
+                "defense": row['defense'],
+                "sp_attack": row['sp_attack'],
+                "sp_defense": row['sp_defense'],
+                "speed": row['speed']
+            },
+            "height": row['height'],
+            "weight": row['weight'],
+            "tipos": [],
+            "abilities": [],
+            "movimientos_por_nivel": {}
         }
-    
-    def get_common_moves(self, pokemon_name: str):
-        """Retorna lista de golpes comuns/prováveis que o Pokémon pode ter.
+        
+        # Buscar Tipos
+        cursor.execute("SELECT type FROM types WHERE pokemon_name = ? ORDER BY type", 
+                      (normalized_name,))
+        pokemon['tipos'] = [r['type'] for r in cursor.fetchall()]
+        
+        # Buscar Habilidades
+        cursor.execute("SELECT ability FROM abilities WHERE pokemon_name = ? ORDER BY ability", 
+                      (normalized_name,))
+        pokemon['abilities'] = [r['ability'] for r in cursor.fetchall()]
+
+        # Buscar Movimentos organizados por nível
+        cursor.execute("""
+            SELECT level, move_name, power, accuracy, type, category, priority, pp 
+            FROM moves 
+            WHERE pokemon_name = ? 
+            ORDER BY level ASC, move_name ASC
+        """, (normalized_name,))
+        
+        for row in cursor.fetchall():
+            level_str = str(row['level'])
+            if level_str not in pokemon['movimientos_por_nivel']:
+                pokemon['movimientos_por_nivel'][level_str] = []
+            
+            # Formato OBJETO (novo, recomendado)
+            pokemon['movimientos_por_nivel'][level_str].append({
+                "name": row['move_name'],
+                "power": row['power'],
+                "accuracy": row['accuracy'],
+                "type": row['type'],
+                "category": row['category'],
+                "priority": row['priority'],
+                "pp": row['pp']
+            })
+        
+        conn.close()
+        return pokemon
+
+    def get_pokemon_moves(self, name: str, level: Optional[int] = None) -> Dict[str, List[Dict]]:
+        """
+        Retorna movimentos aprendidos por um Pokémon.
         
         Args:
-            pokemon_name: Nome do Pokémon
-            
+            name: Nome do Pokémon
+            level: Nível específico (None = todos os níveis)
+        
         Returns:
-            Lista de nomes de movimentos (strings)
+            Dict: {nível: [movimentos]}
         """
-        if not pokemon_name:
-            return []
-        
-        key = pokemon_name.strip().lower()
-        
-        # Tenta pokeapi_pokemon primeiro
-        data = self.pokeapi_pokemon.get(key)
-        if data and "moves" in data:
-            # Retorna movimentos comuns (primeiros 8)
-            return data["moves"][:8]
-        
-        # Fallback: movimentos genéricos por tipo
-        types = self.get_pokemon_types(pokemon_name)
-        common_moves = []
-        
-        if "electric" in types or 10 in types:
-            common_moves = ["thunderbolt", "thunder", "volt switch", "wild charge"]
-        elif "water" in types or 11 in types:
-            common_moves = ["surf", "hydro pump", "scald", "aqua jet"]
-        elif "fire" in types or 10 in types:
-            common_moves = ["flamethrower", "fire blast", "flare blitz", "fire punch"]
-        elif "grass" in types or 12 in types:
-            common_moves = ["energy ball", "leaf storm", "giga drain", "wood hammer"]
-        elif "fighting" in types or 2 in types:
-            common_moves = ["close combat", "aura sphere", "drain punch", "mach punch"]
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        normalized_name = name.strip().title()
+
+        if level is not None:
+            cursor.execute("""
+                SELECT level, move_name, power, accuracy, type, category, priority, pp
+                FROM moves
+                WHERE pokemon_name = ? AND level = ?
+                ORDER BY move_name
+            """, (normalized_name, level))
         else:
-            # Movimentos genéricos
-            common_moves = ["return", "hyper beam", "body slam", "quick attack"]
-        
-        return common_moves
-    
-    def get_priority_moves(self, pokemon_name: str):
-        """Retorna lista de golpes de prioridade que o Pokémon pode ter.
+            cursor.execute("""
+                SELECT level, move_name, power, accuracy, type, category, priority, pp
+                FROM moves
+                WHERE pokemon_name = ?
+                ORDER BY level ASC, move_name ASC
+            """, (normalized_name,))
+
+        moves_by_level = {}
+        for row in cursor.fetchall():
+            level_str = str(row['level'])
+            if level_str not in moves_by_level:
+                moves_by_level[level_str] = []
+            
+            moves_by_level[level_str].append({
+                "name": row['move_name'],
+                "power": row['power'],
+                "accuracy": row['accuracy'],
+                "type": row['type'],
+                "category": row['category'],
+                "priority": row['priority'],
+                "pp": row['pp']
+            })
+
+        conn.close()
+        return moves_by_level
+
+    def get_pokemon_stats(self, name: str) -> Optional[Dict[str, int]]:
+        """Retorna apenas os base_stats de um Pokémon."""
+        pokemon = self.get_pokemon_data(name)
+        return pokemon['base_stats'] if pokemon else None
+
+    def get_pokemon_types(self, name: str) -> List[str]:
+        """Retorna tipos de um Pokémon."""
+        pokemon = self.get_pokemon_data(name)
+        return pokemon['tipos'] if pokemon else []
+
+    def get_pokemon_abilities(self, name: str) -> List[str]:
+        """Retorna habilidades de um Pokémon."""
+        pokemon = self.get_pokemon_data(name)
+        return pokemon['abilities'] if pokemon else []
+
+    def search_by_type(self, type_name: str) -> List[str]:
+        """
+        Busca todos os Pokémons de um tipo específico.
         
         Args:
-            pokemon_name: Nome do Pokémon
-            
+            type_name: Nome do tipo (ex: "Fire", "Water")
+        
         Returns:
-            Lista de nomes de movimentos com prioridade > 0
+            Lista de nomes de Pokémons
         """
-        if not pokemon_name:
-            return []
+        conn = self._get_connection()
+        cursor = conn.cursor()
         
-        # Lista de movimentos de prioridade comuns
-        priority_moves = [
-            "quick attack", "aqua jet", "mach punch", "bullet punch",
-            "ice shard", "shadow sneak", "vacuum wave", "extreme speed",
-            "sucker punch", "accelerock", "water shuriken"
-        ]
+        cursor.execute("""
+            SELECT DISTINCT pokemon_name 
+            FROM types 
+            WHERE type = ? 
+            ORDER BY pokemon_name
+        """, (type_name.capitalize(),))
         
-        # Verifica se o Pokémon tem acesso a algum desses
-        common_moves = self.get_common_moves(pokemon_name)
+        results = [r['pokemon_name'] for r in cursor.fetchall()]
+        conn.close()
+        return results
+
+    def search_by_ability(self, ability_name: str) -> List[str]:
+        """Busca Pokémons por habilidade."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
         
-        return [m for m in priority_moves if m in [cm.lower() for cm in common_moves]]
+        cursor.execute("""
+            SELECT DISTINCT pokemon_name 
+            FROM abilities 
+            WHERE ability = ? 
+            ORDER BY pokemon_name
+        """, (ability_name.capitalize(),))
+        
+        results = [r['pokemon_name'] for r in cursor.fetchall()]
+        conn.close()
+        return results
+
+    def search_by_move(self, move_name: str) -> List[str]:
+        """Busca Pokémons que podem aprender um move específico."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT DISTINCT pokemon_name 
+            FROM moves 
+            WHERE move_name = ? 
+            ORDER BY pokemon_name
+        """, (move_name,))
+        
+        results = [r['pokemon_name'] for r in cursor.fetchall()]
+        conn.close()
+        return results
+
+    def get_all_pokemon(self) -> List[str]:
+        """Retorna lista de todos os Pokémons."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT name FROM pokemon ORDER BY id")
+        results = [r['name'] for r in cursor.fetchall()]
+        conn.close()
+        return results
+
+    def get_total_pokemon_count(self) -> int:
+        """Retorna total de Pokémons no banco."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT COUNT(*) as count FROM pokemon")
+        count = cursor.fetchone()['count']
+        conn.close()
+        return count
+
+    def validate_pokemon(self, name: str) -> bool:
+        """Verifica se um Pokémon existe no banco."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        normalized_name = name.strip().title()
+        cursor.execute("SELECT COUNT(*) as count FROM pokemon WHERE name = ?", 
+                      (normalized_name,))
+        exists = cursor.fetchone()['count'] > 0
+        conn.close()
+        return exists
+
+
+# Exemplo de uso
+if __name__ == "__main__":
+    db = PokemonDatabase()
+    
+    print("=" * 70)
+    print("🔍 TESTE DA POKEDEX SQLite")
+    print("=" * 70)
+    
+    # Teste 1: Buscar Pokémon completo
+    pokemon = db.get_pokemon_data("Bulbasaur")
+    if pokemon:
+        print(f"\n✅ Pokémon encontrado: {pokemon['name']}")
+        print(f"   ID: {pokemon['id']}")
+        print(f"   Tipos: {pokemon['tipos']}")
+        print(f"   Abilities: {pokemon['abilities']}")
+        print(f"   HP: {pokemon['base_stats']['hp']}")
+        if pokemon['movimientos_por_nivel'].get('1'):
+            move = pokemon['movimientos_por_nivel']['1'][0]
+            print(f"   Move Nv1: {move['name']} (Power: {move['power']})")
+    
+    # Teste 2: Contar total
+    total = db.get_total_pokemon_count()
+    print(f"\n✅ Total de Pokémons: {total}")
+    
+    # Teste 3: Buscar por tipo
+    fire_types = db.search_by_type("Fire")
+    print(f"✅ Pokémons Fire: {len(fire_types)} encontrados")
+    if fire_types:
+        print(f"   Exemplos: {', '.join(fire_types[:3])}")
+    
+    print("\n" + "=" * 70)
 
