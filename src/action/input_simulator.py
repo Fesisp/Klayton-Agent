@@ -59,7 +59,7 @@ class InputSimulator:
     def click(self, x, y):
         """Clique padrão (mantido para compatibilidade)."""
         if self.use_human_movement:
-            self.human_click(x, y)
+            self.humanized_click(x, y)
         else:
             if self.move_duration and self.move_duration > 0:
                 pyautogui.moveTo(x, y, duration=self.move_duration)
@@ -67,20 +67,54 @@ class InputSimulator:
             else:
                 pyautogui.click(x, y)
     
-    def human_click(self, x, y):
-        """Simula clique humano com movimento em curva Bezier e delays randômicos."""
-        # 1. Move o mouse de forma curva até o alvo
-        self._bezier_move(x, y)
+    def humanized_click(self, x, y, delay_min=None, delay_max=None):
+        """
+        Clique humanizado com variância gaussiana e jitter de coordenadas.
         
-        # 2. Pequena pausa antes de clicar (jitter)
-        delay = random.uniform(self.min_delay, self.max_delay)
-        time.sleep(delay)
+        SEGURANÇA ANTI-CHEAT:
+        - Distribuição Gaussiana para delays (tempo de reação humano)
+        - Jitter de 2 pixels nas coordenadas (imprecisão natural)
+        - Curva Bezier suave para movimento do mouse
         
-        # 3. Clica
+        Args:
+            x, y: Coordenadas alvo
+            delay_min: Delay mínimo em segundos (default: 0.1s)
+            delay_max: Delay máximo em segundos (default: 0.3s)
+        """
+        if delay_min is None:
+            delay_min = self.min_delay
+        if delay_max is None:
+            delay_max = self.max_delay
+        
+        # 1. Pequeno erro de precisão no clique (jitter de ±2 pixels)
+        jitter_x = x + random.randint(-2, 2)
+        jitter_y = y + random.randint(-2, 2)
+        
+        # 2. Move o mouse de forma curva até o alvo (com jitter)
+        self._bezier_move(jitter_x, jitter_y)
+        
+        # 3. Delay baseado em Distribuição Gaussiana
+        # μ = média entre min e max
+        # σ = desvio padrão pequeno (0.05) para variar naturalmente
+        mean_delay = (delay_min + delay_max) / 2
+        sigma = (delay_max - delay_min) / 6  # ~95% dos valores dentro do intervalo
+        
+        actual_delay = abs(random.gauss(mean_delay, sigma))
+        # Garante que o delay fica no intervalo [delay_min, delay_max]
+        actual_delay = max(delay_min, min(actual_delay, delay_max))
+        
+        time.sleep(actual_delay)
+        
+        # 4. Clica
         pyautogui.click()
         
-        # 4. Pequeno delay pós-clique
-        time.sleep(random.uniform(0.02, 0.08))
+        # 5. Pequeno delay pós-clique (jitter natural)
+        post_click_delay = abs(random.gauss(0.05, 0.015))
+        time.sleep(max(0.01, post_click_delay))
+    
+    def human_click(self, x, y):
+        """Alias para compatibilidade com código antigo."""
+        self.humanized_click(x, y)
     
     def press_directional_key(self, key):
         """Pressiona tecla direcional (W/A/S/D) para movimento.

@@ -18,6 +18,10 @@ class TeamManager:
         self.inferred_items: Dict[str, str] = {}  # {pokemon_name: "CHOICE_SCARF", "LIFE_ORB", etc}
         self.survival_turns: Dict[str, int] = {}  # {pokemon_name: turnos_restantes} para Toxic
         
+        # ========== MEMÓRIA DE TURNO: Rastreamento de PP ==========
+        # Formato: {pokemon_name: {move_name: pp_restante}}
+        self.session_pp_usage: Dict[str, Dict[str, int]] = {}
+        
         self._load_moves()
 
     # --------- API nova ---------
@@ -149,6 +153,113 @@ class TeamManager:
             'special_defense': 100,
             'speed': 100  # Este é o importante para judge_speed_tier
         }
+    
+    # ========== SISTEMA DE RASTREAMENTO DE PP (Memória de Turno) ==========
+    def initialize_pp_tracking(self, pokemon_name: str, moves_data: Dict[str, int]):
+        """Inicializa rastreamento de PP para um Pokémon.
+        
+        Chamado quando um Pokémon entra em batalha ou é capturado.
+        
+        Args:
+            pokemon_name: Nome do Pokémon
+            moves_data: Dict {move_name: max_pp}
+        """
+        if not pokemon_name:
+            return
+        
+        key = pokemon_name.lower().strip()
+        if key not in self.session_pp_usage:
+            self.session_pp_usage[key] = {}
+        
+        # Inicializa cada movimento com PP máximo
+        for move_name, max_pp in moves_data.items():
+            self.session_pp_usage[key][move_name] = max_pp
+    
+    def track_move_usage(self, pokemon_name: str, move_name: str, max_pp: int = None) -> int:
+        """
+        Registra o uso de um movimento e retorna PP restante.
+        
+        FUNÇÃO CRÍTICA: Se o bot travar, ele usa esse rastreamento para 
+        saber quais movimentos ainda têm PP.
+        
+        Args:
+            pokemon_name: Nome do Pokémon
+            move_name: Nome do movimento
+            max_pp: PP máximo (opcional, se não rastreado antes)
+            
+        Returns:
+            int: PP restante após usar o movimento (0 = sem PP)
+        """
+        if not pokemon_name or not move_name:
+            return 0
+        
+        poke_key = pokemon_name.lower().strip()
+        move_key = move_name.lower().strip()
+        
+        # Inicializa Pokémon se não existe
+        if poke_key not in self.session_pp_usage:
+            self.session_pp_usage[poke_key] = {}
+        
+        # Inicializa movimento se não existe
+        if move_key not in self.session_pp_usage[poke_key]:
+            self.session_pp_usage[poke_key][move_key] = max_pp or 0
+        
+        # Decrementa PP (nunca nega)
+        current_pp = self.session_pp_usage[poke_key][move_key]
+        self.session_pp_usage[poke_key][move_key] = max(0, current_pp - 1)
+        
+        return self.session_pp_usage[poke_key][move_key]
+    
+    def get_move_pp(self, pokemon_name: str, move_name: str) -> int:
+        """Retorna PP restante de um movimento (0 = sem PP)."""
+        if not pokemon_name or not move_name:
+            return 0
+        
+        poke_key = pokemon_name.lower().strip()
+        move_key = move_name.lower().strip()
+        
+        return self.session_pp_usage.get(poke_key, {}).get(move_key, 0)
+    
+    def get_available_moves(self, pokemon_name: str) -> List[str]:
+        """
+        Retorna lista de movimentos que AINDA TÊM PP.
+        
+        Crítico para seleção de movimentos quando o bot reinicia em meio a batalha.
+        
+        Args:
+            pokemon_name: Nome do Pokémon
+            
+        Returns:
+            Lista de nomes de movimentos com PP > 0
+        """
+        if not pokemon_name:
+            return []
+        
+        poke_key = pokemon_name.lower().strip()
+        if poke_key not in self.session_pp_usage:
+            # Se não há rastreamento, retorna todos os movimentos conhecidos
+            return self.get_moves(pokemon_name)
+        
+        # Filtra apenas movimentos com PP > 0
+        available = [
+            move_name 
+            for move_name, pp in self.session_pp_usage[poke_key].items()
+            if pp > 0
+        ]
+        
+        return available or ["struggle"]  # Fallback para Struggle se sem PP
+    
+    def pp_summary(self, pokemon_name: str) -> Dict[str, int]:
+        """Retorna sumário de PP: {move_name: pp_restante}."""
+        if not pokemon_name:
+            return {}
+        
+        poke_key = pokemon_name.lower().strip()
+        return self.session_pp_usage.get(poke_key, {})
+    
+    def reset_pp_session(self):
+        """Limpa rastreamento de PP (fim de batalha ou nova sessão)."""
+        self.session_pp_usage.clear()
 
     # --------- Persistência interna ---------
     def _load_moves(self):

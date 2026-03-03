@@ -63,6 +63,103 @@ class BattleStrategy:
         """
         return int(((base_speed * 2 + iv + (ev // 4)) * level / 100 + 5) * nature)
     
+    # ---------------------------------------------------------
+    # Cálculo de Efetividade de Tipo com Imunidades por Habilidade
+    # ---------------------------------------------------------
+    def calculate_type_effectiveness(self, move_type: str, target_pokemon: str) -> float:
+        """
+        Calcula efetividade de tipo considerando IMUNIDADES POR HABILIDADE.
+        
+        Algumas abilities garantem imunidade a certos tipos:
+        - Levitate: Imune a Ground
+        - Water Absorb: Absorve Water (0.0x damage)
+        - Volt Absorb: Absorve Electric (0.0x damage)
+        - Flash Fire: Absorve Fire (0.0x damage)
+        - Filter/Solid Rock: Reduz super-efetivos para 1.5x
+        - Dry Skin: Water causa dano regenerativo
+        
+        Args:
+            move_type: Tipo do golpe (ex: "Fire", "Water", "Electric")
+            target_pokemon: Nome do Pokémon alvo
+            
+        Returns:
+            float: Multiplicador de efetividade (0.0, 0.5, 1.0, 1.5, 2.0, 4.0)
+        """
+        target_data = self.db.get_pokemon_data(target_pokemon)
+        if not target_data:
+            return 1.0
+        
+        abilities = target_data.get('abilities', [])
+        move_type_normalized = move_type.capitalize() if move_type else ""
+        
+        # ========== IMUNIDADES ABSOLUTAS (0.0x) ==========
+        if "Levitate" in abilities and move_type_normalized == "Ground":
+            logger.info(f"🛡️  {target_pokemon} com Levitate é imune a Ground")
+            return 0.0
+        
+        if "Water Absorb" in abilities and move_type_normalized == "Water":
+            logger.info(f"💧 {target_pokemon} com Water Absorb absorve Water")
+            return 0.0
+        
+        if "Volt Absorb" in abilities and move_type_normalized == "Electric":
+            logger.info(f"⚡ {target_pokemon} com Volt Absorb absorve Electric")
+            return 0.0
+        
+        if "Flash Fire" in abilities and move_type_normalized == "Fire":
+            logger.info(f"🔥 {target_pokemon} com Flash Fire absorve Fire")
+            return 0.0
+        
+        if "Dry Skin" in abilities and move_type_normalized == "Water":
+            logger.info(f"💦 {target_pokemon} com Dry Skin recebe dano reduzido de Water")
+            return 0.5
+        
+        if "Motor Drive" in abilities and move_type_normalized == "Electric":
+            logger.info(f"⚡ {target_pokemon} com Motor Drive é imune a Electric")
+            return 0.0
+        
+        if "Storm Drain" in abilities and move_type_normalized == "Water":
+            logger.info(f"💧 {target_pokemon} com Storm Drain absorve Water")
+            return 0.0
+        
+        # ========== REDUÇÃO DE SUPER-EFETIVOS (1.5x ao invés de 2.0x) ==========
+        if "Filter" in abilities or "Solid Rock" in abilities:
+            base_effectiveness = self._get_base_type_effectiveness(move_type_normalized, target_pokemon)
+            if base_effectiveness >= 2.0:
+                logger.info(f"🛡️  {target_pokemon} com Filter/Solid Rock reduz super-efetivo (2.0x → 1.5x)")
+                return 1.5
+        
+        # ========== EFETIVIDADE PADRÃO DE TIPO ==========
+        return self._get_base_type_effectiveness(move_type_normalized, target_pokemon)
+    
+    def _get_base_type_effectiveness(self, move_type: str, target_pokemon: str) -> float:
+        """
+        Lógica base de efetividade de tipo (0.5x, 1.0x, 2.0x).
+        Usa o tipo_chart.json se disponível, caso contrário retorna 1.0.
+        
+        Args:
+            move_type: Tipo do golpe normalizado
+            target_pokemon: Nome do Pokémon alvo
+            
+        Returns:
+            float: Multiplicador base sem considerar habilidades
+        """
+        target_types = self.db.get_pokemon_types(target_pokemon)
+        if not target_types:
+            return 1.0
+        
+        # Tenta usar tipo_chart.json se carregado
+        if hasattr(self, 'type_chart'):
+            effectiveness = self.type_chart.get(move_type, {}).get(target_types[0], 1.0)
+            # Se o Pokémon tem dois tipos, aplica o multiplicador mais favorável
+            if len(target_types) > 1:
+                eff2 = self.type_chart.get(move_type, {}).get(target_types[1], 1.0)
+                effectiveness *= eff2
+            return effectiveness
+        
+        # Fallback: retorna 1.0 (neutra)
+        logger.debug(f"Type chart não carregado - retornando efetividade 1.0x para {move_type}")
+        return 1.0
+    
     def calculate_real_damage(self, enemy_name, enemy_level, my_poke):
         """Calcula o dano MÁXIMO possível considerando Worst-Case Scenario.
         
