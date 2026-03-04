@@ -25,7 +25,8 @@ class BotControllerExample1:
         pokemon = self.db.get_pokemon_data("Charizard")
         stats = self.db.get_pokemon_stats("Charizard")
         
-        print(f"Cache test: {pokemon['name']} loaded")
+        if pokemon:
+            print(f"Cache test: {pokemon['name']} loaded")
 
 
 # ============================================================================
@@ -46,7 +47,21 @@ class BattleStrategyExample2:
         best_effectiveness = 0.0
         
         for move_name in available_moves:
-            move_data = self.db.get_move_data(move_name)
+            # Obter dados do movimento a partir do pokemon
+            pokemon_data = self.db.get_pokemon_data(my_pokemon)
+            if not pokemon_data:
+                continue
+            
+            # Buscar movimento nos movimientos_por_nivel
+            move_data = None
+            for level_moves in pokemon_data.get('movimientos_por_nivel', {}).values():
+                for move in level_moves:
+                    if move.get('name', '').lower() == move_name.lower():
+                        move_data = move
+                        break
+                if move_data:
+                    break
+            
             if not move_data:
                 continue
                 
@@ -111,17 +126,39 @@ class BattleManagerExample4:
         # Setup: Inicializar rastreamento de PP
         for pokemon_name in my_team:
             moves_data = {}
-            for move in self.tm.get_moves(pokemon_name):
-                move_info = self.db.get_move_data(move)
-                if move_info:
-                    moves_data[move] = move_info.get('pp', 0)
+            pokemon_data = self.db.get_pokemon_data(pokemon_name)
+            if pokemon_data:
+                for move in self.tm.get_moves(pokemon_name):
+                    # Buscar movimento nos dados do pokemon
+                    move_info = None
+                    for level_moves in pokemon_data.get('movimientos_por_nivel', {}).values():
+                        for m in level_moves:
+                            if m.get('name', '').lower() == move.lower():
+                                move_info = m
+                                break
+                        if move_info:
+                            break
+                    
+                    if move_info:
+                        moves_data[move] = move_info.get('pp', 0)
             
             self.tm.initialize_pp_tracking(pokemon_name, moves_data)
     
     def use_move(self, pokemon_name, move_name):
         """Usar um movimento"""
         
-        move_info = self.db.get_move_data(move_name)
+        # Buscar dados do movimento
+        pokemon_data = self.db.get_pokemon_data(pokemon_name)
+        move_info = None
+        if pokemon_data:
+            for level_moves in pokemon_data.get('movimientos_por_nivel', {}).values():
+                for m in level_moves:
+                    if m.get('name', '').lower() == move_name.lower():
+                        move_info = m
+                        break
+                if move_info:
+                    break
+        
         if not move_info:
             return False
         
@@ -195,10 +232,21 @@ class FullBattleLoopExample5:
         my_moves = self.tm.get_moves(my_pokemon)
         if my_moves:
             moves_data = {}
-            for m in my_moves:
-                move_data = self.db.get_move_data(m)
-                if move_data:
-                    moves_data[m] = move_data.get('pp', 0)
+            pokemon_data = self.db.get_pokemon_data(my_pokemon)
+            if pokemon_data:
+                for m in my_moves:
+                    # Buscar movimento nos dados do pokemon
+                    move_data = None
+                    for level_moves in pokemon_data.get('movimientos_por_nivel', {}).values():
+                        for move in level_moves:
+                            if move.get('name', '').lower() == m.lower():
+                                move_data = move
+                                break
+                        if move_data:
+                            break
+                    
+                    if move_data:
+                        moves_data[m] = move_data.get('pp', 0)
             self.tm.initialize_pp_tracking(my_pokemon, moves_data)
         
         # 1. ESCOLHER MOVIMENTO (com imunidades)
@@ -208,7 +256,18 @@ class FullBattleLoopExample5:
         available = self.tm.get_available_moves(my_pokemon)  # Apenas PP > 0
         
         for move in available:
-            move_data = self.db.get_move_data(move)
+            # Buscar dados do movimento
+            pokemon_data = self.db.get_pokemon_data(my_pokemon)
+            move_data = None
+            if pokemon_data:
+                for level_moves in pokemon_data.get('movimientos_por_nivel', {}).values():
+                    for m in level_moves:
+                        if m.get('name', '').lower() == move.lower():
+                            move_data = m
+                            break
+                    if move_data:
+                        break
+            
             if not move_data:
                 continue
                 
@@ -231,7 +290,17 @@ class FullBattleLoopExample5:
         
         # 2. RASTREAR PP
         # MELHORIA 4: Track PP
-        move_data = self.db.get_move_data(best_move)
+        pokemon_data = self.db.get_pokemon_data(my_pokemon)
+        move_data = None
+        if pokemon_data:
+            for level_moves in pokemon_data.get('movimientos_por_nivel', {}).values():
+                for m in level_moves:
+                    if m.get('name', '').lower() == best_move.lower():
+                        move_data = m
+                        break
+                if move_data:
+                    break
+        
         if move_data:
             pp_left = self.tm.track_move_usage(
                 my_pokemon,
@@ -259,68 +328,63 @@ def monitor_improvements():
     print("=== TESTE DE CACHE ===")
     import time
     # ============================================================================
-    # EXEMPLO 6: Monitorar performance
-    # ============================================================================
+# EXEMPLO 6: Monitorar performance
+# ============================================================================
 
-    class PerformanceMonitorExample6:
-        """Demonstrar ganhos de performance de todas as melhorias"""
+class PerformanceMonitorExample6:
+    """Demonstrar ganhos de performance de todas as melhorias"""
     
-        @staticmethod
-        def monitor_improvements():
-            """Demonstrar ganhos de performance"""
+    @staticmethod
+    def monitor_improvements():
+        """Demonstrar ganhos de performance"""
         
-            db = PokemonDatabase()
-            tm = TeamManager()
+        db = PokemonDatabase()
+        tm = TeamManager()
         
-            # Teste 1: Cache
-            print("\n=== TESTE 1: CACHE SINGLETON ===")
-            import time
+        # Teste 1: Cache
+        print("\n=== TESTE 1: CACHE SINGLETON ===")
+        import time
         
-            # Miss (primeira vez)
-            start = time.time()
-            data1 = db.get_pokemon_data("Pikachu")
-            elapsed1 = time.time() - start
-            print(f"Cache Miss: {elapsed1*1000:.2f}ms")
+        # Miss (primeira vez)
+        start = time.time()
+        data1 = db.get_pokemon_data("Pikachu")
+        elapsed1 = time.time() - start
+        print(f"Cache Miss: {elapsed1*1000:.2f}ms")
         
-            # Hit (segunda vez - do cache)
-            start = time.time()
-            data2 = db.get_pokemon_data("Pikachu")
-            elapsed2 = time.time() - start
-            print(f"Cache Hit:  {elapsed2*1000:.3f}ms")
+        # Hit (segunda vez - do cache)
+        start = time.time()
+        data2 = db.get_pokemon_data("Pikachu")
+        elapsed2 = time.time() - start
+        print(f"Cache Hit:  {elapsed2*1000:.3f}ms")
         
-            if elapsed2 > 0:
-                speedup = elapsed1 / elapsed2
-                print(f"Speedup:    {speedup:.0f}x\n")
+        if elapsed2 > 0:
+            speedup = elapsed1 / elapsed2
+            print(f"Speedup:    {speedup:.0f}x\n")
         
-            # Teste 2: Imunidades
-            print("=== TESTE 2: IMUNIDADES (MELHORIA 2) ===")
-            strategy = BattleStrategy(db, tm)
+        # Teste 2: Imunidades
+        print("=== TESTE 2: IMUNIDADES (MELHORIA 2) ===")
+        strategy = BattleStrategy(db, tm)
         
-            test_cases = [
-                ("Ground", "Gengar", 0.0),      # Levitate immunity
-                ("Electric", "Lanturn", 0.0),   # VoltAbsorb immunity
-                ("Fire", "Charizard", 0.0),     # FlareBoost immunity
-            ]
+        test_cases = [
+            ("Ground", "Gengar", 0.0),      # Levitate immunity
+            ("Electric", "Lanturn", 0.0),   # VoltAbsorb immunity
+            ("Fire", "Charizard", 0.0),     # FlareBoost immunity
+        ]
         
-            for move_type, pokemon, expected_eff in test_cases:
-                eff = strategy.calculate_type_effectiveness(move_type, pokemon)
-                status = "✓" if eff == expected_eff else "✗"
-                print(f"{status} {move_type} vs {pokemon}: {eff}x")
+        for move_type, pokemon, expected_eff in test_cases:
+            eff = strategy.calculate_type_effectiveness(move_type, pokemon)
+            status = "✓" if eff == expected_eff else "✗"
+            print(f"{status} {move_type} vs {pokemon}: {eff}x")
         
-            # Teste 3: PP Tracking
-            print("\n=== TESTE 3: RASTREAMENTO DE PP (MELHORIA 4) ===")
-            tm.initialize_pp_tracking("Pikachu", {"Thunder": 15, "Quick-Attack": 30})
+        # Teste 3: PP Tracking
+        print("\n=== TESTE 3: RASTREAMENTO DE PP (MELHORIA 4) ===")
+        tm.initialize_pp_tracking("Pikachu", {"Thunder": 15, "Quick-Attack": 30})
         
-            pp1 = tm.track_move_usage("Pikachu", "Thunder", 15)
-            pp2 = tm.track_move_usage("Pikachu", "Thunder", 15)
+        pp1 = tm.track_move_usage("Pikachu", "Thunder", 15)
+        pp2 = tm.track_move_usage("Pikachu", "Thunder", 15)
         
-            print(f"Thunder PP após 1º uso: {pp1}")
-            print(f"Thunder PP após 2º uso: {pp2}\n")
-    
-    available = tm.get_available_moves("Pikachu")
-    print(f"Disponíveis: {available}")
-    
-    print("\n=== TODAS AS MELHORIAS FUNCIONANDO ===")
+        print(f"Thunder PP após 1º uso: {pp1}")
+        print(f"Thunder PP após 2º uso: {pp2}\n")
 
 if __name__ == "__main__":
     monitor_improvements()
