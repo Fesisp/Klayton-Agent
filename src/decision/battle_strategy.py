@@ -1,11 +1,93 @@
 from loguru import logger
 
 
+class BattleIntelligence:
+    """
+    Motor de Inferência de Status: Rastreia buffs e debuffs (-6 a +6) durante a batalha.
+    
+    PROPÓSITO:
+    - Manter memória de curto prazo dos modificadores de stats
+    - Detectar quando o inimigo usou Agility, Dragon Dance, Swords Dance, etc.
+    - Ajustar o cálculo de dano e predicção de speed tier em função dos stages
+    - Resetar ao trocar de Pokémon ou fim da batalha
+    
+    STAGES: Conforme regras oficiais da Game Freak (-6 a +6)
+    - -6: 0.25x (Worst case)
+    - -1: 0.66x
+    -  0: 1.0x (Neutral)
+    -  +6: 4.0x (Max boost)
+    """
+    
+    def __init__(self):
+        # Tabela em memória: -6 a +6 conforme regras da Game Freak
+        self.stages = {
+            "player": {"atk": 0, "def": 0, "spa": 0, "spd": 0, "spe": 0},
+            "enemy":  {"atk": 0, "def": 0, "spa": 0, "spd": 0, "spe": 0}
+        }
+        # Tabela de multiplicadores de stage (oficial Pokémon)
+        self.stage_multipliers = {
+            -6: 0.25, -5: 0.28, -4: 0.33, -3: 0.4, -2: 0.5, -1: 0.66,
+             0: 1.0,  1: 1.5,   2: 2.0,  3: 2.5,  4: 3.0,  5: 3.5,  6: 4.0
+        }
+    
+    def update_stage(self, side, stat, change):
+        """
+        Atualiza o modificador após detectar uso de golpe de setup (ex: Dragon Dance, Calm Mind).
+        
+        Args:
+            side: "player" ou "enemy"
+            stat: "atk", "def", "spa", "spd", "spe"
+            change: Delta de stage (+1, +2, -1, etc)
+        """
+        if side not in self.stages or stat not in self.stages[side]:
+            logger.warning(f"Stage inválido: side={side}, stat={stat}")
+            return
+        
+        current = self.stages[side][stat]
+        new_stage = max(-6, min(6, current + change))
+        
+        if new_stage != current:
+            logger.info(f"📊 {side.upper()} {stat}: {current} → {new_stage}")
+            self.stages[side][stat] = new_stage
+    
+    def get_modified_stat(self, side, stat, base_value):
+        """
+        Retorna o valor real do stat considerando o Stage atual.
+        
+        Args:
+            side: "player" ou "enemy"
+            stat: "atk", "def", "spa", "spd", "spe"
+            base_value: Valor base do stat (do SQLite)
+            
+        Returns:
+            float: Valor modificado pelo stage
+        """
+        if side not in self.stages or stat not in self.stages[side]:
+            return base_value
+        
+        stage = self.stages[side][stat]
+        multiplier = self.stage_multipliers.get(stage, 1.0)
+        return base_value * multiplier
+    
+    def reset_battle_stages(self):
+        """
+        Limpa todos os stages ao fim da batalha ou troca de Pokémon.
+        Chamado em: switch_pokemon(), battle_end()
+        """
+        for side in ["player", "enemy"]:
+            for stat in self.stages[side]:
+                self.stages[side][stat] = 0
+        logger.debug("✨ Battle stages resetados (troca de Pokémon ou fim de batalha)")
+
+
 class BattleStrategy:
     def __init__(self, db, team_manager, config=None):
         self.db = db
         self.tm = team_manager
         self.config = config or {}
+        
+        # Motor de Inferência de Status (Buffs/Debuffs)
+        self.intelligence = BattleIntelligence()
 
         # Carrega estratégia do config.yaml ou usa defaults
         strategy_cfg = self.config.get('strategy', {})
@@ -303,7 +385,123 @@ class BattleStrategy:
         
         return max_damage
     
-    def calculate_effective_hp_post_turn(self, my_poke, enemy_dmg_ratio):
+    def predict_damage_with_stages(self, attacker, defender, move, attacker_level=50, defender_level=50):
+        """
+        Prediz o dano considerando Stages (buffs/debuffs) da batalha atual.
+        
+        LÓGICA:
+        - Pega base do SQLite
+        - Aplica Stages inferidos (via BattleIntelligence)
+        - Recalcula quem ataca primeiro se Speed foi modificada
+        - Retorna dano + flag de quem ataca primeiro
+        
+        CASOS DE USO:
+        1. Inimigo usou Agility (+2 Spe) → Bot decide usar Priority Move ou Curar
+        2. Bot usou Swords Dance (+2 Atk) → Decide se ataca ou não
+        3. Inimigo em -1 Def → Bot prevê dano maior
+        
+        Args:
+            attacker: Nome do Pokémon atacante
+            defender: Nome do Pokémon defensor
+            move: Dict com {name, power, accuracy, category, type, ...}
+            attacker_level: Nível do atacante (padrão 50)
+            defender_level: Nível do defensor (padrão 50)
+            
+        Returns:
+            dict: {
+                'damage': float (HP absoluto),
+                'damage_ratio': float (% do HP máximo),
+                'attacker_goes_first': bool,
+                'stage_modifiers': dict (stats modificados),
+                'notes': str (explicação do cálculo)
+            }
+        """
+        attacker_data = self.db.get_pokemon_data(attacker)
+        defender_data = self.db.get_pokemon_data(defender)
+        
+        if not attacker_data or not defender_data:
+            logger.warning(f"Dados incompletos para {attacker} vs {defender}")
+            return {'damage': 0, 'damage_ratio': 0, 'attacker_goes_first': False, 'notes': 'Dados incompletos'}
+        
+        # 1. Stats base (do SQLite)
+        atk_base = attacker_data['stats'].get('attack', 100)
+        def_base = defender_data['stats'].get('defense', 100)
+        spa_base = attacker_data['stats'].get('sp_attack', 100)
+        spd_base = defender_data['stats'].get('sp_defense', 100)
+        spe_attacker_base = attacker_data['stats'].get('speed', 100)
+        spe_defender_base = defender_data['stats'].get('speed', 100)
+        hp_defender = defender_data['stats'].get('hp', 100)
+        
+        # 2. Aplicar Stages (via BattleIntelligence)
+        # Determina se é atacante ou defensor
+        is_attacker_player = (attacker.lower() == self.tm.get_player_active() or 'player' in str(attacker).lower())
+        side_attacker = "player" if is_attacker_player else "enemy"
+        side_defender = "enemy" if is_attacker_player else "player"
+        
+        atk_modified = self.intelligence.get_modified_stat(side_attacker, "atk", atk_base)
+        def_modified = self.intelligence.get_modified_stat(side_defender, "def", def_base)
+        spa_modified = self.intelligence.get_modified_stat(side_attacker, "spa", spa_base)
+        spd_modified = self.intelligence.get_modified_stat(side_defender, "spd", spd_base)
+        spe_attacker = self.intelligence.get_modified_stat(side_attacker, "spe", spe_attacker_base)
+        spe_defender = self.intelligence.get_modified_stat(side_defender, "spe", spe_defender_base)
+        
+        # 3. Selecionar stats corretos (Físico vs Especial)
+        move_category = str(move.get('category', ''))
+        if move_category == '1':  # Físico
+            atk = atk_modified
+            dfn = def_modified
+        else:  # Especial
+            atk = spa_modified
+            dfn = spd_modified
+        
+        # 4. Cálculo de dano (Fórmula oficial)
+        power = float(move.get('power', 0) or 0)
+        if power == 0:
+            logger.debug(f"Golpe {move.get('name')} é de status - dano = 0")
+            return {'damage': 0, 'damage_ratio': 0, 'attacker_goes_first': False, 'notes': 'Status move (não causa dano)'}
+        
+        # STAB
+        attacker_types = self.db.get_pokemon_types(attacker)
+        move_type = str(move.get('type_id', ''))
+        stab = 1.5 if move_type in [str(t) for t in attacker_types] else 1.0
+        
+        # Type Effectiveness
+        defender_types = self.db.get_pokemon_types(defender)
+        type_mult = self.db.get_type_multiplier(move_type, defender_types)
+        
+        # Fórmula Game Freak
+        damage = (((2 * attacker_level / 5 + 2) * power * atk / dfn) / 50 + 2)
+        final_damage = damage * stab * type_mult
+        
+        # 5. Verificar quem ataca primeiro (Speed Tier)
+        move_priority = int(move.get('priority', 0))
+        attacker_goes_first = (spe_attacker > spe_defender) or (move_priority > 0)
+        
+        if move_priority != 0:
+            logger.debug(f"Priority move ({move.get('name')}): priority={move_priority}")
+        
+        # 6. Logs e notas
+        notes = f"Stages: Atk={atk_base}→{atk_modified:.1f}, Def={def_base}→{def_modified:.1f}, Spe={spe_attacker_base}→{spe_attacker:.1f}"
+        
+        damage_ratio = final_damage / hp_defender if hp_defender > 0 else 0
+        
+        logger.debug(f"📊 {attacker} vs {defender}: dano={final_damage:.1f}, ratio={damage_ratio:.2%}, first={attacker_goes_first}")
+        
+        return {
+            'damage': final_damage,
+            'damage_ratio': damage_ratio,
+            'attacker_goes_first': attacker_goes_first,
+            'stage_modifiers': {
+                'atk': atk_modified,
+                'def': def_modified,
+                'spa': spa_modified,
+                'spd': spd_modified,
+                'spe': spe_attacker
+            },
+            'notes': notes
+        }
+    
+
         """Calcula se o Pokémon sobrevive ao golpe + dano residual de status.
         
         FILOSOFIA: Morte Inesperada NUNCA mais acontece.
