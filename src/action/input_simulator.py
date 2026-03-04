@@ -4,8 +4,33 @@ import cv2
 import numpy as np
 import os
 import random
+try:
+    import pydirectinput
+except Exception:
+    pydirectinput = None
 from scipy import interpolate
 from ..utils.geometry import normalize_roi, get_safe_random_point
+from ..utils.window_handler import WindowHandler
+try:
+    from loguru import logger
+except Exception:
+    import logging
+    logger = logging.getLogger(__name__)
+
+
+def execute_human_action(x, y, label="Botão"):
+    """Clica com jitter de pixels e delay variável (curva gaussiana)."""
+    target_x = x + random.randint(-3, 3)
+    target_y = y + random.randint(-3, 3)
+
+    mover = pydirectinput if pydirectinput is not None else pyautogui
+    mover.moveTo(target_x, target_y, duration=random.uniform(0.15, 0.4))
+
+    reaction_time = abs(random.gauss(0.2, 0.05))
+    time.sleep(reaction_time)
+
+    mover.click()
+    print(f"Ação executada: {label} em {target_x},{target_y}")
 
 class InputSimulator:
     def __init__(self, config=None):
@@ -25,6 +50,8 @@ class InputSimulator:
         self.max_move_duration = float(input_cfg.get('max_move_duration', 0.5))
         self.idle_action_chance = float(input_cfg.get('idle_action_chance', 0.05))
         self.last_idle_time = time.time()
+        window_title = self.cfg.get('screen', {}).get('window_title', 'PokeOne')
+        self.win_handler = WindowHandler(window_title=window_title)
         
         # Preload templates to avoid IO on every click
         assets_dir = self.cfg.get('assets', {}).get('templates_dir', '')
@@ -81,40 +108,43 @@ class InputSimulator:
             delay_min: Delay mínimo em segundos (default: 0.1s)
             delay_max: Delay máximo em segundos (default: 0.3s)
         """
-        if delay_min is None:
-            delay_min = self.min_delay
-        if delay_max is None:
-            delay_max = self.max_delay
-        
-        # 1. Pequeno erro de precisão no clique (jitter de ±2 pixels)
-        jitter_x = x + random.randint(-2, 2)
-        jitter_y = y + random.randint(-2, 2)
-        
-        # 2. Move o mouse de forma curva até o alvo (com jitter)
-        self._bezier_move(jitter_x, jitter_y)
-        
-        # 3. Delay baseado em Distribuição Gaussiana
-        # μ = média entre min e max
-        # σ = desvio padrão pequeno (0.05) para variar naturalmente
-        mean_delay = (delay_min + delay_max) / 2
-        sigma = (delay_max - delay_min) / 6  # ~95% dos valores dentro do intervalo
-        
-        actual_delay = abs(random.gauss(mean_delay, sigma))
-        # Garante que o delay fica no intervalo [delay_min, delay_max]
-        actual_delay = max(delay_min, min(actual_delay, delay_max))
-        
-        time.sleep(actual_delay)
-        
-        # 4. Clica
-        pyautogui.click()
-        
-        # 5. Pequeno delay pós-clique (jitter natural)
-        post_click_delay = abs(random.gauss(0.05, 0.015))
-        time.sleep(max(0.01, post_click_delay))
+        try:
+            execute_human_action(x, y)
+        except Exception:
+            if delay_min is None:
+                delay_min = self.min_delay
+            if delay_max is None:
+                delay_max = self.max_delay
+
+            jitter_x = x + random.randint(-2, 2)
+            jitter_y = y + random.randint(-2, 2)
+
+            self._bezier_move(jitter_x, jitter_y)
+
+            mean_delay = (delay_min + delay_max) / 2
+            sigma = (delay_max - delay_min) / 6
+
+            actual_delay = abs(random.gauss(mean_delay, sigma))
+            actual_delay = max(delay_min, min(actual_delay, delay_max))
+
+            time.sleep(actual_delay)
+            pyautogui.click()
+
+            post_click_delay = abs(random.gauss(0.05, 0.015))
+            time.sleep(max(0.01, post_click_delay))
     
     def human_click(self, x, y):
         """Alias para compatibilidade com código antigo."""
         self.humanized_click(x, y)
+
+    def click_relative(self, rel_x, rel_y):
+        """Clica em posição baseada na porcentagem da janela detectada."""
+        rect = self.win_handler.get_window_rect()
+        if rect:
+            real_x, real_y = self.win_handler.get_relative_coords(rel_x, rel_y, rect)
+            execute_human_action(real_x, real_y, label=f"Clique Relativo {rel_x},{rel_y}")
+            return True
+        return False
     
     def press_directional_key(self, key):
         """Pressiona tecla direcional (W/A/S/D) para movimento.
@@ -204,17 +234,28 @@ class InputSimulator:
     
     def click_in_slot(self, slot_index):
         """Clica aproximadamente no centro de um dos 4 slots de ataque (0-3)."""
-        slot_map = {
-            0: 'slot_1',
-            1: 'slot_2',
-            2: 'slot_3',
-            3: 'slot_4',
-        }
-        key = slot_map.get(slot_index)
-        if not key:
+        if slot_index not in [0, 1, 2, 3]:
             return
+
         moves_rois = self.rois.get('moves', {})
-        coords = moves_rois.get(key)
+        coords = None
+
+        if isinstance(moves_rois, (list, tuple)):
+            if slot_index < len(moves_rois):
+                coords = moves_rois[slot_index]
+        elif isinstance(moves_rois, dict):
+            slot_map = {
+                0: 'slot_1',
+                1: 'slot_2',
+                2: 'slot_3',
+                3: 'slot_4',
+            }
+            key = slot_map.get(slot_index)
+            coords = moves_rois.get(key)
+
+        if not coords:
+            logger.warning(f"ROI de move não encontrada para slot {slot_index}")
+            return
         
         # Simplificado usando função utilitária
         cx, cy = get_safe_random_point(coords, 0.2)
@@ -223,17 +264,32 @@ class InputSimulator:
 
     def click_fight_button(self, screen_img=None):
         """Clica no botão FIGHT usando o template fight.png."""
-        self._click_template(self.fight_template, 'fight_threshold', screen_img)
+        clicked = self._click_template(self.fight_template, 'fight_threshold', screen_img)
+        if not clicked:
+            rel = self.rois.get('fight_button_rel')
+            if isinstance(rel, dict) and 'x' in rel and 'y' in rel:
+                return self.click_relative(rel['x'], rel['y'])
+        return clicked
 
 
     def click_pokemon_button(self, screen_img=None):
         """Clica no botão POKEMON usando o template pokemon.png."""
-        self._click_template(self.pokemon_template, 'pokemon_threshold', screen_img)
+        clicked = self._click_template(self.pokemon_template, 'pokemon_threshold', screen_img)
+        if not clicked:
+            rel = self.rois.get('pokemon_button_rel')
+            if isinstance(rel, dict) and 'x' in rel and 'y' in rel:
+                return self.click_relative(rel['x'], rel['y'])
+        return clicked
 
 
     def click_run_button(self, screen_img=None):
         """Clica no botão RUN usando o template run.png."""
-        self._click_template(self.run_template, 'run_threshold', screen_img)
+        clicked = self._click_template(self.run_template, 'run_threshold', screen_img)
+        if not clicked:
+            rel = self.rois.get('run_button_rel')
+            if isinstance(rel, dict) and 'x' in rel and 'y' in rel:
+                return self.click_relative(rel['x'], rel['y'])
+        return clicked
 
 
     def _click_template(self, template, threshold_key, screen_img=None, margin_pct=0.2):

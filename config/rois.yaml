@@ -1,0 +1,4 @@
+battle_ui:
+  fight_button: { x: 0.85, y: 0.70 }
+  enemy_name_roi: { top: 0.05, left: 0.10, width: 0.20, height: 0.05 }
+  my_hp_roi: { top: 0.80, left: 0.70, width: 0.15, height: 0.03 }

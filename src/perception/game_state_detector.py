@@ -52,6 +52,40 @@ class GameStateDetector:
             'status': status_templates  # Dicionário de templates de status
         }
 
+    def _resolve_roi(self, image, roi):
+        """Converte ROI percentual para pixels e mantém compatibilidade com ROI absoluto."""
+        if roi is None:
+            return None
+
+        img_h, img_w = image.shape[:2]
+
+        if isinstance(roi, dict):
+            top = roi.get('top')
+            left = roi.get('left')
+            width = roi.get('width')
+            height = roi.get('height')
+
+            if None in (top, left, width, height):
+                return None
+
+            if 0 <= top <= 1 and 0 <= left <= 1 and 0 <= width <= 1 and 0 <= height <= 1:
+                x1 = int(left * img_w)
+                y1 = int(top * img_h)
+                x2 = int((left + width) * img_w)
+                y2 = int((top + height) * img_h)
+            else:
+                x1 = int(left)
+                y1 = int(top)
+                x2 = int(left + width)
+                y2 = int(top + height)
+
+            return [x1, y1, x2, y2]
+
+        if isinstance(roi, (list, tuple)) and len(roi) == 4:
+            return [int(roi[0]), int(roi[1]), int(roi[2]), int(roi[3])]
+
+        return None
+
     def find_player_name(self, frame, nickname):
         """
         Busca de Texto Flutuante: Ignora sprite e foca no nome do jogador.
@@ -202,14 +236,14 @@ class GameStateDetector:
             str: "BURN", "PARALYSIS", "POISON", "TOXIC", "SLEEP", "FREEZE" ou None
         """
         # ROI próxima à barra de HP do inimigo (configurar em settings.yaml)
-        status_roi = self.rois.get('enemy_status_icon')
+        status_roi = self._resolve_roi(image, self.rois.get('enemy_status_icon'))
         if not status_roi:
             # Fallback: usa região próxima ao nome do inimigo
-            enemy_name_roi = self.rois.get('enemy_name')
+            enemy_name_roi = self._resolve_roi(image, self.rois.get('enemy_name'))
             if enemy_name_roi:
                 # Extende ROI para a direita (onde ícones aparecem)
-                x, y, w, h = enemy_name_roi
-                status_roi = [x + w + 5, y - 5, 30, 20]  # 30x20px ao lado
+                x1, y1, x2, y2 = enemy_name_roi
+                status_roi = [x2 + 5, max(0, y1 - 5), x2 + 35, y1 + 15]
             else:
                 logger.warning("ROI 'enemy_status_icon' não configurada")
                 return None
@@ -255,16 +289,17 @@ class GameStateDetector:
     def get_battle_info(self, image):
         """Extrai nome do inimigo, nome do player e HP."""
         # Nome do inimigo
-        enemy_name_img = crop_roi_safe(image, self.rois.get('enemy_name'))
+        enemy_name_img = crop_roi_safe(image, self._resolve_roi(image, self.rois.get('enemy_name')))
         enemy_name_raw = self.ocr.extract_text_optimized(
             enemy_name_img,
             whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz- ",
             invert_for_white_text=True,
         )
         enemy_name = enemy_name_raw.replace("Lv", "").strip()
+        enemy_name = self.ocr.validate_ocr_name(enemy_name)
 
         # Nível do inimigo (se disponível)
-        enemy_level_img = crop_roi_safe(image, self.rois.get('enemy_level'))
+        enemy_level_img = crop_roi_safe(image, self._resolve_roi(image, self.rois.get('enemy_level')))
         enemy_level_raw = self.ocr.extract_text_optimized(
             enemy_level_img,
             whitelist="0123456789",
@@ -274,13 +309,14 @@ class GameStateDetector:
         enemy_level = int(enemy_level_digits) if enemy_level_digits else None
 
         # Nome do Pokémon do player (HUD)
-        player_name_img = crop_roi_safe(image, self.rois.get('player_name'))
+        player_name_img = crop_roi_safe(image, self._resolve_roi(image, self.rois.get('player_name')))
         player_name_raw = self.ocr.extract_text_optimized(
             player_name_img,
             whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz- ",
             invert_for_white_text=True,
         )
         player_name = player_name_raw.replace("Lv", "").strip()
+        player_name = self.ocr.validate_ocr_name(player_name)
         
         # Detectar HP usando contagem de pixels HSV (método preferido e exclusivo)
         player_hp_percentage = self.get_hp_ratio_by_pixel(image, 'player')
@@ -319,7 +355,7 @@ class GameStateDetector:
         """
         # Determina qual ROI usar
         roi_key = f'hp_{side}' if side in ['player', 'enemy'] else f'{side}_hp_bar'
-        hp_roi = self.rois.get(roi_key)
+        hp_roi = self._resolve_roi(image, self.rois.get(roi_key))
         
         if not hp_roi:
             return None

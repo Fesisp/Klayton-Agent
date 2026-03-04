@@ -5,13 +5,15 @@ from loguru import logger
 import re
 import os
 from difflib import get_close_matches
+from ..knowledge.pokemon_database import PokemonDatabase
 
 
 class OCREngine:
-    def __init__(self, tesseract_path):
+    def __init__(self, tesseract_path, db=None):
         if not os.path.exists(tesseract_path):
             logger.error(f"Tesseract não encontrado em: {tesseract_path}")
         pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        self.db = db or PokemonDatabase()
         
         # Carrega moves conhecidos de data/known_moves.json
         self.known_moves = []
@@ -178,6 +180,18 @@ class OCREngine:
 
         return clean
 
+    def validate_ocr_name(self, detected_name):
+        """Corrige nomes lidos errados comparando com a lista oficial do DB."""
+        if not detected_name:
+            return detected_name
+
+        official_names = self.db.get_all_pokemon_names()
+        match = get_close_matches(detected_name, official_names, n=1, cutoff=0.8)
+
+        if match:
+            return match[0]
+        return detected_name
+
     def ocr_party_list(self, image_roi):
         """OCR especializado para listas de equipe (texto branco em fundo escuro).
 
@@ -225,7 +239,8 @@ class OCREngine:
                 # Remove partes com Lv, números isolados etc.
                 name_parts = [p for p in parts if not p.startswith("Lv")]
                 if name_parts:
-                    clean_names.append(" ".join(name_parts))
+                    candidate = " ".join(name_parts)
+                    clean_names.append(self.validate_ocr_name(candidate))
 
             return clean_names
         except Exception as e:

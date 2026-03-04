@@ -21,7 +21,36 @@ from src.core.udp_receiver import create_udp_receiver
 def load_config():
     config_path = ROOT_DIR / 'config' / 'settings.yaml'
     with open(config_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        config = yaml.safe_load(f)
+
+    rois_path = ROOT_DIR / 'config' / 'rois.yaml'
+    if rois_path.exists():
+        try:
+            with open(rois_path, "r", encoding="utf-8") as f:
+                rois_cfg = yaml.safe_load(f) or {}
+
+            battle_ui = rois_cfg.get('battle_ui', {})
+            config.setdefault('rois', {})
+
+            if 'enemy_name_roi' in battle_ui:
+                config['rois']['enemy_name'] = battle_ui['enemy_name_roi']
+
+            if 'my_hp_roi' in battle_ui:
+                config['rois']['hp_player'] = battle_ui['my_hp_roi']
+                config['rois']['player_hp_bar'] = battle_ui['my_hp_roi']
+
+            if 'fight_button' in battle_ui:
+                config['rois']['fight_button_rel'] = battle_ui['fight_button']
+
+            if 'pokemon_button' in battle_ui:
+                config['rois']['pokemon_button_rel'] = battle_ui['pokemon_button']
+
+            if 'run_button' in battle_ui:
+                config['rois']['run_button_rel'] = battle_ui['run_button']
+        except Exception as e:
+            logger.error(f"Falha ao carregar rois.yaml: {e}")
+
+    return config
 
 try:
     from loguru import logger
@@ -53,7 +82,7 @@ def main():
         config = load_config()
         
         # Initialize components
-        screen = ScreenCapture()
+        screen = ScreenCapture(config)
         ocr = OCREngine(config['ocr']['tesseract_path'])
         detector = GameStateDetector(screen, ocr, config)
         input_sim = InputSimulator(config)

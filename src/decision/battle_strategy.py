@@ -36,6 +36,7 @@ class BattleStrategy:
         self.last_turn_outspeeded = False  # Flag para inferência de velocidade
         self.my_speed_stat = 0  # Velocidade calculada do meu Pokémon
         self.enemy_max_possible_speed = 0  # Velocidade máxima possível do inimigo
+        self.my_status = None
         
         # Detecção de HP do detector (será injetado externamente)
         self.detector = None
@@ -159,6 +160,49 @@ class BattleStrategy:
         # Fallback: retorna 1.0 (neutra)
         logger.debug(f"Type chart não carregado - retornando efetividade 1.0x para {move_type}")
         return 1.0
+
+    def check_passive_immunities(self, move_type, target_data):
+        """
+        Verifica se o alvo possui habilidades que anulam o tipo do golpe.
+        """
+        abilities = target_data.get('abilities', []) if target_data else []
+
+        immunities = {
+            "Levitate": "Ground",
+            "Water Absorb": "Water",
+            "Volt Absorb": "Electric",
+            "Flash Fire": "Fire",
+            "Dry Skin": "Water",
+            "Sap Sipper": "Grass"
+        }
+
+        for ability, immune_type in immunities.items():
+            if ability in abilities and move_type == immune_type:
+                return 0.0
+
+        return 1.0
+
+    def calculate_advanced_damage(self, move, attacker_stats, defender_stats, target_data):
+        """
+        Cálculo de dano considerando Categorias (Physical/Special) e Imunidades.
+        """
+        move_name, power, acc, m_type, category, priority, pp = move
+
+        multiplier = self.check_passive_immunities(m_type, target_data)
+        if multiplier == 0:
+            return 0
+
+        burn_multiplier = 0.5 if (self.my_status == "Burn" and category == "Physical") else 1.0
+
+        if category == "Physical":
+            atk = attacker_stats['attack']
+            dfn = defender_stats['defense']
+        else:
+            atk = attacker_stats['sp_attack']
+            dfn = defender_stats['sp_defense']
+
+        damage = ((power * (atk / dfn)) / 50) * multiplier * burn_multiplier
+        return damage
     
     def calculate_real_damage(self, enemy_name, enemy_level, my_poke):
         """Calcula o dano MÁXIMO possível considerando Worst-Case Scenario.
