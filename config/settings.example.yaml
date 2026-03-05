@@ -1,0 +1,158 @@
+# ⚠️ ARQUIVO DE EXEMPLO - NÃO CONTÉM DADOS SIGILOSOS ⚠️
+# 
+# Este arquivo serve apenas como template/documentação.
+# Para usar o bot, copie este arquivo como "settings.yaml" e preencha seus dados reais.
+#
+# ⚠️ NUNCA faça commit de settings.yaml com credenciais reais! ⚠️
+
+bot:
+  name: "PokeBot Pro Unified"
+  enabled: true
+  debug_mode: true
+  loop_interval: 1.0
+  behavior: "mission"
+
+screen:
+  capture_method: "mss"
+  fps: 10
+
+input:
+  mouse_move_duration: 0.25
+  use_human_movement: true
+  min_delay: 0.05
+  max_delay: 0.15
+  min_move_duration: 0.2
+  max_move_duration: 0.5
+  idle_action_chance: 0.05
+
+assets:
+  templates_dir: "assets/templates/"
+  shiny_image: "shiny.png"
+  goto_image: "goto.png"
+  talk_image: "talk.png"
+  fight_image: "fight.png"
+  bag_image: "items.png"
+  pokemon_image: "pokemon.png"
+  run_image: "run.png"
+
+detection:
+  talk_threshold: 0.6
+  shiny_threshold: 0.6
+  goto_threshold: 0.7
+  battle_button_threshold: 0.75
+  battle_area: [680, 910, 1250, 1070]
+  talk_search_area: [600, 300, 1300, 600]
+
+ocr:
+  tesseract_path: "C:/Program Files/Tesseract-OCR/tesseract.exe"
+  use_easyocr: false
+
+battle:
+  auto_battle: true
+  action_cooldown: 3.0
+
+strategy:
+  whitelist:
+    - "chansey"
+    - "blissey"
+  blacklist:
+    - "magikarp"
+    - "caterpie"
+
+hunt:
+  target_pokemon:
+    - "ditto"
+    - "eevee"
+  target_ability: null
+  area_bounds: null
+  move_interval: 2.0
+
+follow:
+  method: "template"
+  distance: 50
+  check_interval: 1.0
+  match_threshold: 0.7
+  player_template: "player_char.png"
+  follow_button_template: "follow_button.png"
+  button_threshold: 0.75
+
+follow_settings:
+  player_name: "SeuNomeAqui"
+  min_confidence: 0.7
+  lost_target_timeout: 5.0
+  check_interval: 1.0
+
+controls:
+  enabled: true
+  idle_key: "<f1>"
+  mission_key: "<f2>"
+  hunting_key: "<f3>"
+  follow_key: "<f4>"
+  pause_key: "<f5>"
+  resume_key: "<f6>"
+  stop_key: "<f9>"
+
+remote_control:
+  enabled: false
+  port: 5005
+
+chat:
+  enabled: false
+  provider: "ollama"
+  model: "llama3"
+  api_key: ""
+  base_url: "http://localhost:11434"
+  response_chance: 0.3
+  min_response_time: 2.0
+  max_response_time: 5.0
+  personality: "casual"
+
+rois:
+  enemy_name: [54, 30, 250, 60]
+  enemy_level: [248, 30, 310, 60]
+  enemy_hp_bar: [57, 72, 335, 95]
+  enemy_status_icon: [340, 70, 375, 95]
+  
+  player_name: [1600, 810, 1850, 840]
+  player_hp_bar: [1565, 852, 1845, 875]
+  player_hp_text: [1750, 880, 1845, 905]
+  
+  hp_player: [1565, 852, 1845, 875]
+  hp_enemy: [57, 72, 335, 95]
+
+  battle_area: [680, 910, 1250, 1070]
+
+  btn_fight: [875, 920, 1030, 975]
+  btn_bag: [875, 990, 1030, 1045]
+  btn_pokemon: [700, 990, 860, 1045]
+  btn_run: [1045, 990, 1210, 1045]
+
+  moves:
+    - [740, 865, 955, 905]
+    - [965, 865, 1180, 905]
+    - [740, 940, 955, 980]
+    - [965, 940, 1180, 980]
+
+  talk_search_area: [600, 300, 1300, 600]
+  
+  switch_menu:
+    container: [700, 990, 1210, 1045]
+    slot_height: 30
+
+  team_hud:
+    container: [1800, 750, 1920, 1080]
+    slot_height: 50
+
+# ================================
+# NOTIFICAÇÕES (Telegram + Discord)
+# ================================
+# ⚠️ PREENCHA COM SEUS DADOS REAIS EM settings.yaml (IGNORADO POR GIT) ⚠️
+notifications:
+  # TELEGRAM
+  # Obtenha em: @BotFather (token) + @GetIDs Bot (chat_id)
+  telegram_bot_token: "SEU_TOKEN_AQUI"
+  telegram_chat_id: "SEU_CHAT_ID_AQUI"
+  
+  # DISCORD
+  # Crie webhook em: Discord → Canal → Integrações → Webhooks
+  discord_webhook_url: "SEU_WEBHOOK_URL_AQUI"

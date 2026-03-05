@@ -9,6 +9,7 @@ from loguru import logger
 from ..perception.game_state_detector import GameState
 from ..utils.geometry import normalize_roi, crop_roi_safe, get_safe_random_point
 from ..utils.navigation_helper import NavigationHelper
+from ..utils.notifier import NotificationManager
 
 
 class BotBehavior(Enum):
@@ -29,6 +30,9 @@ class BotController:
         self.ocr = components['ocr']
         self.team_mgr = components['team_mgr']
         self.strategy.detector = self.detector
+        
+        # === NOTIFICAÇÕES ===
+        self.notifier = NotificationManager(config)
         
         self.running = True
         self.paused = False  # Controle de pausa via hotkey
@@ -256,6 +260,9 @@ class BotController:
         # Pausa o bot imediatamente
         self.paused = True
         logger.warning("Bot PAUSADO automaticamente devido ao shiny")
+        
+        # === NOTIFICAÇÃO ENVIADA PARA TELEGRAM/DISCORD ===
+        self.notifier.notify_shiny_found("Pokémon Desconhecido", "Local Desconhecido")
 
         # 1) Toca o alarme padrão do PC (beep) algumas vezes
         for _ in range(10):
