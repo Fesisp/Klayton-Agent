@@ -64,4 +64,46 @@ class PokemonDatabase:
                 return [r[0] for r in cursor.fetchall()]
         except sqlite3.Error:
             return []
+    
+    @lru_cache(maxsize=256)
+    def get_move_data(self, move_name):
+        """
+        Busca informações de um movimento específico no banco de dados.
+        
+        PROPÓSITO: Obter PP máximo, power, accuracy, tipo, categoria para tracking.
+        
+        Args:
+            move_name: Nome do movimento (case-insensitive)
+            
+        Returns:
+            dict: {'move_name', 'power', 'accuracy', 'type', 'category', 'priority', 'pp'}
+            None: Se movimento não encontrado
+        """
+        if not move_name:
+            return None
+        
+        # Normaliza nome (lowercase e strip)
+        move_key = move_name.lower().strip()
+        
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                # Busca movimento (case-insensitive usando LOWER)
+                cursor.execute("""
+                    SELECT DISTINCT move_name, power, accuracy, type, category, priority, pp
+                    FROM moves
+                    WHERE LOWER(move_name) = ?
+                    LIMIT 1
+                """, (move_key,))
+                
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                
+                return dict(row)
+        except sqlite3.Error as e:
+            print(f"Erro ao buscar movimento '{move_name}': {e}")
+            return None
 

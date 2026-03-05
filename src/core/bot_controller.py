@@ -410,13 +410,33 @@ class BotController:
     def handle_battle(self, img):
         """
         Pipeline de Batalha Integrado (v2.5)
-        Combina: Visão Rápida + Decisão TTK + Inferência de Itens + Stage Tracking
+        Combina: Visão Rápida + Decisão TTK + Inferência de Itens + PP Tracking
         """
-        # 1. Inicialização de Contexto
+        # 1. Inicialização de Contexto e PP Tracking
         if not self.battle_context['active']:
             self.battle_context['active'] = True
             self.battle_context['turn_count'] = 0
             logger.info("⚔️ Nova batalha detectada - Iniciando Motor Tático v2.5")
+            
+            # --- INÍCIO: INJEÇÃO DA MELHORIA 4 (PP TRACKING) ---
+            # Identifica o Pokémon atual (o primeiro da party)
+            player_name = self.team_mgr.current_team[0] if self.team_mgr.current_team else None
+            if player_name:
+                my_moves = self.team_mgr.get_moves(player_name)
+                if my_moves:
+                    moves_data = {}
+                    for move in my_moves:
+                        if move:
+                            # Busca o PP máximo direto do banco de dados em cache (<1ms)
+                            move_info = self.strategy.db.get_move_data(move.strip().lower())
+                            if move_info:
+                                moves_data[move] = move_info.get('pp', 0)
+                    
+                    # Inicializa o rastreio na memória do TeamManager
+                    self.team_mgr.initialize_pp_tracking(player_name, moves_data)
+                    logger.info(f"📊 Rastreamento de PP inicializado para {player_name}: {moves_data}")
+            # --- FIM DA INJEÇÃO ---
+            
             # Garante menu de luta aberto
             self.input.click_fight_button(img)
             time.sleep(self.cfg.get('battle', {}).get('fight_to_moves_delay', 1.2))
@@ -479,11 +499,15 @@ class BotController:
                 logger.info(f"⚔️ [BATTLE] Atacando slot {best_slot} contra {enemy_name}")
                 self.input.click_in_slot(best_slot)
 
+        # Sincroniza contador de turnos da estratégia (clima, estados temporais)
+        if hasattr(self.strategy, 'increment_turn'):
+            self.strategy.increment_turn()
+
         # Cooldown entre turnos
         time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 4.0))
     
     def _perform_attack(self, player_name, enemy_name):
-        """Executa ataque considerando PP e Humanização."""
+        """Executa ataque considerando PP e Humanização Avançada."""
         # Escolhe o melhor slot
         best_slot = self.strategy.get_best_move(player_name, enemy_name)
         
@@ -492,14 +516,32 @@ class BotController:
             self._handle_switch_to_resistant(enemy_name, None)
             return
 
-        # Rastreamento de PP (se disponível)
+        # --- INÍCIO: CONSUMO DE PP (MELHORIA 4) ---
         moves = self.team_mgr.get_moves(player_name)
         if moves and 0 <= best_slot < len(moves):
             move_name = moves[best_slot]
-            logger.info(f"⚔️ Usando {move_name} (Slot {best_slot})")
+            if move_name:
+                # Atualiza estado de clima quando usamos golpe de weather
+                if hasattr(self.strategy, 'update_weather_from_move'):
+                    self.strategy.update_weather_from_move(move_name)
 
-        # Clique Humanizado
-        self.input.click_in_slot(best_slot)
+                move_info = self.strategy.db.get_move_data(move_name.strip().lower())
+                max_pp = move_info.get('pp', 0) if move_info else 0
+                
+                # Desconta o PP usado e retorna o quanto sobrou
+                pp_left = self.team_mgr.track_move_usage(player_name, move_name, max_pp)
+                logger.info(f"⚔️ Usando {move_name} (Slot {best_slot}) - PP Restante: {pp_left}/{max_pp}")
+        # --- FIM DO CONSUMO DE PP ---
+
+        # --- INÍCIO: CLIQUE HUMANIZADO (MELHORIA 3) ---
+        # Usa humanized_click_in_slot se disponível, senão fallback
+        if hasattr(self.input, 'humanized_click_in_slot'):
+            self.input.humanized_click_in_slot(best_slot, delay_min=0.1, delay_max=0.3)
+        else:
+            # Fallback seguro: aplica humanização genérica se o método específico não existir
+            logger.debug("Usando fallback de clique genérico (adicione humanized_click_in_slot ao InputSimulator)")
+            self.input.click_in_slot(best_slot)
+        # --- FIM DO CLIQUE HUMANIZADO ---
 
     def _use_healing_move(self, player_name):
         """Tenta usar um movimento de cura conhecido."""
@@ -564,7 +606,7 @@ class BotController:
             self.input.press('esc')  # Fecha menu
 
     def _click_party_slot(self, slot_idx):
-        """Clica no slot específico do menu de party."""
+        """Clica no slot específico do menu de party com anti-tracking."""
         switch_cfg = self.cfg.get('rois', {}).get('switch_menu', {})
         container = switch_cfg.get('container')
         slot_h = int(switch_cfg.get('slot_height', 30))
@@ -575,9 +617,16 @@ class BotController:
             slot_y1 = y1 + slot_idx * slot_h
             slot_y2 = slot_y1 + slot_h
             
-            # Clique seguro e humanizado
+            # Pega um ponto randômico seguro dentro do slot
             cx, cy = get_safe_random_point([x1, slot_y1, x2, slot_y2], 0.2)
-            self.input.click(cx, cy)
+            
+            # --- INÍCIO: CLIQUE HUMANIZADO (MELHORIA 3) ---
+            if hasattr(self.input, 'humanized_click'):
+                # Aplica curva de Bezier e delay Gaussiano
+                self.input.humanized_click(cx, cy, delay_min=0.15, delay_max=0.35)
+            else:
+                self.input.click(cx, cy)
+            # --- FIM DO CLIQUE HUMANIZADO ---
 
     def _execute_emergency_switch(self, enemy_name, img):
         """Executa troca de emergência quando estratégia retorna -1.

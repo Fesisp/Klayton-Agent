@@ -88,6 +88,10 @@ class BattleStrategy:
         
         # Motor de Inferência de Status (Buffs/Debuffs)
         self.intelligence = BattleIntelligence()
+        
+        # Estado de Clima (persistente durante batalha)
+        self.weather = "CLEAR"  # CLEAR, SUN, RAIN, SAND, HAIL
+        self.weather_turns = 0
 
         # Carrega estratégia do config.yaml ou usa defaults
         strategy_cfg = self.config.get('strategy', {})
@@ -127,6 +131,70 @@ class BattleStrategy:
         self.turn_count = 0
         self.current_enemy = None
         self.last_action_time = 0
+
+    # ---------------------------------------------------------
+    # Gestão de Clima
+    # ---------------------------------------------------------
+    def set_weather(self, weather_type):
+        """Define o clima atual da batalha."""
+        valid_weathers = {"CLEAR", "SUN", "RAIN", "SAND", "HAIL"}
+        normalized = str(weather_type or "").upper()
+        if normalized in valid_weathers and self.weather != normalized:
+            logger.info(f"🌦️ Clima alterado: {self.weather} -> {normalized}")
+            self.weather = normalized
+            self.weather_turns = 5
+
+    def update_weather_from_move(self, move_name):
+        """Atualiza clima quando detecta uso de golpe/habilidade de weather."""
+        move = str(move_name or "").lower().strip()
+        if move in {"rain dance", "drizzle"}:
+            self.set_weather("RAIN")
+        elif move in {"sunny day", "drought"}:
+            self.set_weather("SUN")
+        elif move in {"sandstorm", "sand stream"}:
+            self.set_weather("SAND")
+        elif move in {"hail", "snowscape", "snow warning"}:
+            self.set_weather("HAIL")
+
+    def get_weather_multiplier(self, move_type):
+        """Calcula multiplicador de dano baseado no clima atual."""
+        if self.weather == "CLEAR":
+            return 1.0
+
+        m_type = str(move_type or "").strip().lower()
+
+        if self.weather == "RAIN":
+            if m_type == "water":
+                return 1.5
+            if m_type == "fire":
+                return 0.5
+        elif self.weather == "SUN":
+            if m_type == "fire":
+                return 1.5
+            if m_type == "water":
+                return 0.5
+
+        return 1.0
+
+    def apply_weather_defense_bonus(self, pokemon_name, stat_type, value):
+        """
+        Aplica bônus defensivos de clima.
+        - SAND: +50% Sp.Def para tipo Rock
+        - HAIL: +50% Def para tipo Ice
+        """
+        if self.weather not in {"SAND", "HAIL"}:
+            return value
+
+        types = [str(t).lower() for t in (self.db.get_pokemon_types(pokemon_name) or [])]
+        normalized_stat = str(stat_type or "").lower()
+
+        if self.weather == "SAND" and normalized_stat == "sp_defense" and "rock" in types:
+            return value * 1.5
+
+        if self.weather == "HAIL" and normalized_stat == "defense" and "ice" in types:
+            return value * 1.5
+
+        return value
 
     # ---------------------------------------------------------
     # Cálculos de Speed Tier
@@ -864,7 +932,7 @@ class BattleStrategy:
         return max_damage_ratio
     
     def calculate_perfect_damage(self, enemy_name, enemy_level, my_poke):
-        """Calcula o dano PERFEITO considerando Burn, Itens e Status.
+        """Calcula o dano PERFEITO considerando Burn, Itens, Status e Clima.
         
         Versão aprimorada que integra:
         - Burn reduzindo ataque físico em 50%
@@ -898,6 +966,14 @@ class BattleStrategy:
             logger.warning(f"Stats de {my_poke} não encontrados")
             return 0.0
         
+        # Aplica bônus defensivos de clima nos meus stats
+        my_def = self.apply_weather_defense_bonus(my_poke, 'defense', my_stats.get('defense', 100))
+        my_sp_def = self.apply_weather_defense_bonus(
+            my_poke,
+            'sp_defense',
+            my_stats.get('special_defense', 100)
+        )
+
         # --- AJUSTE DE STATUS NO INIMIGO ---
         enemy_status = self.tm.get_status(enemy_name)
         atk_mod = 0.5 if enemy_status == "BURN" else 1.0  # Burn corta Atk Físico em 50%
@@ -921,17 +997,17 @@ class BattleStrategy:
                 continue  # Ignora movimentos de status
             
             # Determina categoria (físico vs especial)
-            category_id = str(move_data.get('category_id', '1'))
+            category_id = str(move_data.get('category_id', move_data.get('category', '1')))
             is_special = category_id == '2'
             category_name = 'special' if is_special else 'physical'
             
             # --- SELEÇÃO DE STATS CORRETA ---
             if is_special:
                 atk = enemy_stats['sp_attack']  # Especial não é afetado por Burn
-                defn = my_stats['special_defense']
+                defn = my_sp_def
             else:
                 atk = enemy_stats['attack'] * atk_mod  # Físico afetado por Burn
-                defn = my_stats['defense']
+                defn = my_def
             
             # --- FÓRMULA DE DANO REAL (GAME FREAK) ---
             damage = (((2 * enemy_level / 5 + 2) * power * atk / defn) / 50 + 2)
@@ -939,16 +1015,19 @@ class BattleStrategy:
             # --- MULTIPLICADORES (STAB + TIPAGEM) ---
             enemy_types = self.db.get_pokemon_types(enemy_name)
             my_types = self.db.get_pokemon_types(my_poke)
-            move_type = move_data.get('type_id')
+            move_type = move_data.get('type_id', move_data.get('type'))
             
             # STAB (Same Type Attack Bonus)
             stab = 1.5 if move_type in enemy_types else 1.0
             
             # Type Effectiveness
             type_mult = self.db.get_type_multiplier(move_type, my_types)
+
+            # Multiplicador de clima
+            weather_mult = self.get_weather_multiplier(move_type)
             
             # Dano com STAB e type
-            final_damage = damage * stab * type_mult
+            final_damage = damage * stab * type_mult * weather_mult
             
             # --- INFERÊNCIA DE ITEM ---
             inferred_item = self.tm.get_inferred_item(enemy_name)
@@ -973,7 +1052,7 @@ class BattleStrategy:
                 if self.debug:
                     logger.debug(
                         f"💥 {move_name} ({category_name}): {final_damage:.1f} dmg "
-                        f"[Pwr={power}, STAB={stab}, Type={type_mult}, Status={atk_mod}]"
+                        f"[Pwr={power}, STAB={stab}, Type={type_mult}, Weather={weather_mult}, Status={atk_mod}]"
                     )
         
         if best_move:
@@ -985,7 +1064,7 @@ class BattleStrategy:
         return max_damage
     
     def calculate_move_damage(self, attacker_poke, move_name, defender_poke, is_attacker_player=False):
-        """Calcula dano de um golpe específico.
+        """Calcula dano de um golpe específico com suporte a clima.
         
         Args:
             attacker_poke: Nome do Pokémon atacante
@@ -1007,23 +1086,51 @@ class BattleStrategy:
         # Stats
         if is_attacker_player:
             attacker_stats = self.tm.get_stats(attacker_poke)
+            if not attacker_stats:
+                return 0.0
             attacker_level = 50  # Assumindo level padrão
             atk = attacker_stats.get('attack', 100)
             spa = attacker_stats.get('special_attack', 100)
+
+            defender_base = self.db.get_base_stats(defender_poke)
+            if not defender_base:
+                return 0.0
+
+            defender_level = self.current_enemy_level
+            raw_def = self.db.estimate_stat(defender_base['defense'], defender_level)
+            raw_sp_def = self.db.estimate_stat(defender_base['special_defense'], defender_level)
+
+            dfn_val = self.apply_weather_defense_bonus(defender_poke, 'defense', raw_def)
+            sp_dfn_val = self.apply_weather_defense_bonus(defender_poke, 'sp_defense', raw_sp_def)
         else:
             attacker_base = self.db.get_base_stats(attacker_poke)
+            if not attacker_base:
+                return 0.0
             attacker_level = self.current_enemy_level
             atk = self.db.estimate_stat(attacker_base['attack'], attacker_level)
             spa = self.db.estimate_stat(attacker_base['special_attack'], attacker_level)
-        
-        defender_stats = self.tm.get_stats(defender_poke) if is_attacker_player else self.db.get_base_stats(defender_poke)
+
+            defender_stats = self.tm.get_stats(defender_poke)
+            if not defender_stats:
+                return 0.0
+
+            dfn_val = self.apply_weather_defense_bonus(
+                defender_poke,
+                'defense',
+                defender_stats.get('defense', 100)
+            )
+            sp_dfn_val = self.apply_weather_defense_bonus(
+                defender_poke,
+                'sp_defense',
+                defender_stats.get('special_defense', 100)
+            )
         
         # Categoria
-        category_id = str(move_data.get('category_id', '1'))
+        category_id = str(move_data.get('category_id', move_data.get('category', '1')))
         is_special = category_id == '2'
         
         atk_stat = spa if is_special else atk
-        def_stat = defender_stats.get('special_defense' if is_special else 'defense', 100)
+        def_stat = sp_dfn_val if is_special else dfn_val
         
         # Fórmula
         damage = (((2 * attacker_level / 5 + 2) * power * atk_stat / def_stat) / 50 + 2)
@@ -1031,12 +1138,14 @@ class BattleStrategy:
         # Modificadores
         attacker_types = self.db.get_pokemon_types(attacker_poke)
         defender_types = self.db.get_pokemon_types(defender_poke)
-        move_type = move_data.get('type_id')
+        move_type = move_data.get('type_id', move_data.get('type'))
         
         stab = 1.5 if move_type in attacker_types else 1.0
         type_mult = self.db.get_type_multiplier(move_type, defender_types)
+
+        weather_mult = self.get_weather_multiplier(move_type)
         
-        return damage * stab * type_mult
+        return damage * stab * type_mult * weather_mult
     
     def check_priority_threat(self, enemy_poke, my_poke, my_hp_raw):
         """Verifica se o inimigo possui golpes de prioridade que podem finalizar.
@@ -1926,20 +2035,28 @@ class BattleStrategy:
         return None
     
     def reset_battle_state(self):
-        """Reseta variáveis de estado de batalha (movido de BattleController)."""
+        """Reseta variáveis de estado de batalha e clima."""
         self.current_enemy = None
         self.turn_count = 0
+        self.weather = "CLEAR"
+        self.weather_turns = 0
         self.last_action_time = 0
         self.enemy_outspeeded_me_last_turn = False
         self.enemy_item_inference = None
         self.expected_damage_last_turn = 0
         self.actual_damage_last_turn = 0
-        logger.info("Estado de batalha resetado.")
+        logger.info("Estado de batalha e clima resetados.")
     
     def increment_turn(self):
-        """Incrementa o contador de turnos."""
+        """Incrementa turno e gerencia duração de clima."""
         self.turn_count += 1
-        logger.debug(f"Turno {self.turn_count} iniciado")
+        if self.weather != "CLEAR":
+            self.weather_turns -= 1
+            if self.weather_turns <= 0:
+                logger.info(f"🌤️ Clima {self.weather} terminou.")
+                self.weather = "CLEAR"
+                self.weather_turns = 0
+        logger.debug(f"Turno {self.turn_count} iniciado (Clima: {self.weather})")
     
     def get_turn_count(self):
         """Retorna o contador atual de turnos."""

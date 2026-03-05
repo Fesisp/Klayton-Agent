@@ -261,6 +261,49 @@ class InputSimulator:
         cx, cy = get_safe_random_point(coords, 0.2)
         
         self.click(cx, cy)
+    
+    def humanized_click_in_slot(self, slot_index, delay_min=0.1, delay_max=0.3):
+        """
+        Clica em um slot de movimento com humanização completa.
+        
+        SEGURANÇA ANTI-CHEAT:
+        - Variância Gaussiana no delay
+        - Jitter nas coordenadas
+        - Curva Bezier no movimento
+        
+        Args:
+            slot_index: Índice do slot (0-3)
+            delay_min: Delay mínimo em segundos
+            delay_max: Delay máximo em segundos
+        """
+        if slot_index not in [0, 1, 2, 3]:
+            return
+
+        moves_rois = self.rois.get('moves', {})
+        coords = None
+
+        if isinstance(moves_rois, (list, tuple)):
+            if slot_index < len(moves_rois):
+                coords = moves_rois[slot_index]
+        elif isinstance(moves_rois, dict):
+            slot_map = {
+                0: 'slot_1',
+                1: 'slot_2',
+                2: 'slot_3',
+                3: 'slot_4',
+            }
+            key = slot_map.get(slot_index)
+            coords = moves_rois.get(key)
+
+        if not coords:
+            logger.warning(f"ROI de move não encontrada para slot {slot_index}")
+            return
+        
+        # Ponto aleatório dentro do slot
+        cx, cy = get_safe_random_point(coords, 0.2)
+        
+        # Clique humanizado com curva Bezier e delay Gaussiano
+        self.humanized_click(cx, cy, delay_min=delay_min, delay_max=delay_max)
 
     def click_fight_button(self, screen_img=None):
         """Clica no botão FIGHT usando o template fight.png."""

@@ -14,5 +14,11 @@
   "pidgey": [
     "Tackle",
     "SanadAttack"
+  ],
+  "pikachu": [
+    "tackle",
+    "thunderbolt",
+    "quick attack",
+    "thunder wave"
   ]
 }
