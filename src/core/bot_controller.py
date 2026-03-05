@@ -80,11 +80,34 @@ class BotController:
         self.last_damage_received = 0
         self.turn_count = 0  # Contador de turnos para Toxic tracking
         
-        logger.info(f"Bot iniciado em modo: {self.behavior.name}")
+        # === BATTLE CONTEXT v2.5: Tracking Persistente ===
+        self.battle_context = {
+            'active': False,
+            'turn_count': 0,
+            'last_player_hp': None,
+            'last_enemy_hp': None,
+            'last_enemy_name': None
+        }
+        
+        logger.info(f"Bot iniciado em modo: {self.behavior.name} com Motor de Batalha v2.5")
         if self.behavior == BotBehavior.HUNTING:
             logger.info(f"Alvos de caça: {self.hunt_target_pokemon}")
         elif self.behavior == BotBehavior.FOLLOW:
             logger.info(f"Modo Follow ativo - Método: {self.follow_method}")
+
+    def _reset_battle_context(self):
+        """Reseta tracking ao sair de batalha."""
+        logger.info("🏁 Batalha encerrada. Resetando contexto tático.")
+        self.battle_context = {
+            'active': False,
+            'turn_count': 0,
+            'last_player_hp': None,
+            'last_enemy_hp': None,
+            'last_enemy_name': None
+        }
+        # Reseta stages de buffs/debuffs
+        if hasattr(self.strategy, 'intelligence'):
+            self.strategy.intelligence.reset_battle_stages()
 
     def handle_follow(self, frame):
         """Modo FOLLOW consolidado com Template Matching prioritário e OCR como fallback.
@@ -385,38 +408,177 @@ class BotController:
             time.sleep(random.uniform(1.0, 2.0))
 
     def handle_battle(self, img):
-        """Loop de batalha ÚNICO e centralizado - Versão Ultra-Otimizada.
-        
-        FILOSOFIA:
-        - Percepção rápida via HSV pixels (sem OCR para HP)
-        - Delegação 100% de decisões para BattleStrategy
-        - Código limpo focado em orquestração, não em lógica
         """
-        # 1. Garante que o menu está aberto
-        self.input.click_fight_button(img)
-        time.sleep(self.cfg.get('battle', {}).get('fight_to_moves_delay', 1.2))
-        img = self.cap.capture()
+        Pipeline de Batalha Integrado (v2.5)
+        Combina: Visão Rápida + Decisão TTK + Inferência de Itens + Stage Tracking
+        """
+        # 1. Inicialização de Contexto
+        if not self.battle_context['active']:
+            self.battle_context['active'] = True
+            self.battle_context['turn_count'] = 0
+            logger.info("⚔️ Nova batalha detectada - Iniciando Motor Tático v2.5")
+            # Garante menu de luta aberto
+            self.input.click_fight_button(img)
+            time.sleep(self.cfg.get('battle', {}).get('fight_to_moves_delay', 1.2))
+            img = self.cap.capture()
 
-        # 2. Percepção Ultra-Rápida (Apenas Pixels HSV, sem OCR para HP)
-        battle_info = self.detector.get_battle_info(img)  # Já usa get_hp_ratio_by_pixel
-        enemy_name = battle_info.get('enemy_name', '').strip()
-        my_pokemon = battle_info.get('player_name', '').strip() or "MeuPokemon"
+        self.battle_context['turn_count'] += 1
         
-        # 3. Inteligência de Troca de Emergência (Setup Bait / Sleep)
-        # Delegar 100% à Advanced Battle Strategy
-        best_slot = self.strategy.get_best_move(my_pokemon, enemy_name)
-
-        if best_slot == -1:  # Sinal de SWITCH_PRIORITY da estratégia
-            self._execute_emergency_switch(enemy_name, img)
+        # 2. Percepção Avançada (HP via Pixels HSV, sem OCR lento)
+        battle_info = self.detector.get_battle_info(img)
+        enemy_name = battle_info.get('enemy_name', '').strip()
+        player_name = battle_info.get('player_name', '').strip()
+        
+        current_player_hp = battle_info.get('player_hp_percentage')
+        
+        if not player_name or not enemy_name:
+            logger.warning("Não foi possível ler nomes na batalha. Tentando novamente...")
             return
 
-        # 4. Execução do Golpe
-        logger.info(f"⚔️ [BATTLE] Atacando slot {best_slot} contra {enemy_name}")
-        self.input.click_in_slot(best_slot)
+        # 3. Inferência de Itens e Dano (record_turn_result)
+        # Calcula quanto dano levamos no turno passado para inferir Choice Band/Life Orb
+        if self.battle_context['last_player_hp'] is not None and current_player_hp is not None:
+            damage_taken = self.battle_context['last_player_hp'] - current_player_hp
+            if damage_taken > 0:
+                # Passa para a estratégia analisar se o dano condiz com itens ofensivos
+                if hasattr(self.strategy, 'record_turn_result'):
+                    self.strategy.record_turn_result(
+                        i_attacked_first=True,  # Simplificação, idealmente rastrear quem agiu
+                        damage_received=damage_taken
+                    )
         
-        # 5. Cooldown adaptativo
+        # Atualiza contexto para próximo turno
+        self.battle_context['last_player_hp'] = current_player_hp
+        self.battle_context['last_enemy_name'] = enemy_name
+
+        # 4. Decisão Tática Baseada em TTK (Time-To-Kill)
+        # get_best_action avalia: Status, Risco de Morte, Velocidade e Dano Letal
+        tactical_action = self.strategy.get_best_action(player_name, enemy_name)
+        
+        logger.info(f"🧠 Decisão Tática Turno {self.battle_context['turn_count']}: {tactical_action}")
+
+        # 5. Execução da Ação
+        if tactical_action == "SWITCH_TO_RESISTANT" or tactical_action == "SWITCH_MANDATORY":
+            self._handle_switch_to_resistant(enemy_name, img)
+            
+        elif tactical_action == "HEAL":
+            success = self._use_healing_move(player_name)
+            if not success:
+                logger.warning("Falha ao curar, atacando como fallback.")
+                self._perform_attack(player_name, enemy_name)
+                
+        elif tactical_action in ["ATTACK", "BEST_EFFICIENCY_ATTACK"]:
+            self._perform_attack(player_name, enemy_name)
+            
+        else:
+            # Fallback seguro - delega para estratégia antiga
+            best_slot = self.strategy.get_best_move(player_name, enemy_name)
+            if best_slot == -1:
+                self._execute_emergency_switch(enemy_name, img)
+            else:
+                logger.info(f"⚔️ [BATTLE] Atacando slot {best_slot} contra {enemy_name}")
+                self.input.click_in_slot(best_slot)
+
+        # Cooldown entre turnos
         time.sleep(self.cfg.get('battle', {}).get('action_cooldown', 4.0))
     
+    def _perform_attack(self, player_name, enemy_name):
+        """Executa ataque considerando PP e Humanização."""
+        # Escolhe o melhor slot
+        best_slot = self.strategy.get_best_move(player_name, enemy_name)
+        
+        if best_slot == -1:  # Estratégia pediu troca de emergência
+            logger.warning("Estratégia solicitou troca de emergência durante seleção de ataque.")
+            self._handle_switch_to_resistant(enemy_name, None)
+            return
+
+        # Rastreamento de PP (se disponível)
+        moves = self.team_mgr.get_moves(player_name)
+        if moves and 0 <= best_slot < len(moves):
+            move_name = moves[best_slot]
+            logger.info(f"⚔️ Usando {move_name} (Slot {best_slot})")
+
+        # Clique Humanizado
+        self.input.click_in_slot(best_slot)
+
+    def _use_healing_move(self, player_name):
+        """Tenta usar um movimento de cura conhecido."""
+        my_moves = self.team_mgr.get_moves(player_name)
+        healing_moves = self.strategy.healing_move_names  # Set de nomes de cura
+        
+        for idx, move in enumerate(my_moves):
+            if move and move.lower() in healing_moves:
+                logger.info(f"🩹 Executando cura com {move} (Slot {idx})")
+                self.input.click_in_slot(idx)
+                return True
+        return False
+
+    def _handle_switch_to_resistant(self, enemy_name, img):
+        """
+        Troca para o Pokémon mais resistente ao inimigo atual.
+        Analisa tipos e imunidades para escolher o melhor 'tank'.
+        """
+        logger.info(f"🛡️ Buscando troca defensiva contra {enemy_name}...")
+        
+        # Garante menu de pokémon aberto
+        if img is None:
+            img = self.cap.capture()
+        self.input.click_pokemon_button(img)
+        time.sleep(1.0)
+        
+        # Obtém tipos do inimigo
+        enemy_types = self.strategy.db.get_pokemon_types(enemy_name)
+        
+        current_team = self.team_mgr.current_team
+        best_switch_idx = -1
+        best_resistance_score = -1.0
+        
+        # Avalia cada membro do time (começando do índice 1, pois 0 é o atual)
+        for idx, poke_name in enumerate(current_team):
+            if idx == 0: continue  # Pula o atual
+            if not poke_name: continue
+            
+            poke_types = self.strategy.db.get_pokemon_types(poke_name)
+            
+            # Calcula score de resistência (quanto menor o multiplicador, melhor)
+            # Imunidade (0.0) ganha score máximo
+            total_mult = 1.0
+            for e_type in enemy_types:
+                mult = self.strategy.db.get_type_multiplier(e_type, poke_types)
+                total_mult *= mult
+            
+            # Score inverso: quanto menor o dano, maior o score
+            resistance_score = 1.0 / (total_mult + 0.01)
+            
+            logger.debug(f"Analisando {poke_name}: Recebe {total_mult}x de dano (Score: {resistance_score:.1f})")
+            
+            if resistance_score > best_resistance_score:
+                best_resistance_score = resistance_score
+                best_switch_idx = idx
+        
+        if best_switch_idx != -1:
+            logger.info(f"🔄 Trocando para {current_team[best_switch_idx]} (Slot {best_switch_idx}) - Melhor resistência")
+            self._click_party_slot(best_switch_idx)
+        else:
+            logger.warning("Nenhuma troca favorável encontrada. Voltando para batalha.")
+            self.input.press('esc')  # Fecha menu
+
+    def _click_party_slot(self, slot_idx):
+        """Clica no slot específico do menu de party."""
+        switch_cfg = self.cfg.get('rois', {}).get('switch_menu', {})
+        container = switch_cfg.get('container')
+        slot_h = int(switch_cfg.get('slot_height', 30))
+        
+        norm_container = normalize_roi(container)
+        if norm_container:
+            x1, y1, x2, _ = norm_container
+            slot_y1 = y1 + slot_idx * slot_h
+            slot_y2 = slot_y1 + slot_h
+            
+            # Clique seguro e humanizado
+            cx, cy = get_safe_random_point([x1, slot_y1, x2, slot_y2], 0.2)
+            self.input.click(cx, cy)
+
     def _execute_emergency_switch(self, enemy_name, img):
         """Executa troca de emergência quando estratégia retorna -1.
         
