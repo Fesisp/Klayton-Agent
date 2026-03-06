@@ -31,6 +31,7 @@ class GameStateDetector:
         bag_path = assets_dir + config.get('assets', {}).get('bag_image', 'bag.png')
         pokemon_path = assets_dir + config.get('assets', {}).get('pokemon_image', 'pokemon.png')
         run_path = assets_dir + config.get('assets', {}).get('run_image', 'run.png')
+        chat_path = assets_dir + config.get('assets', {}).get('chat_image', 'chat.png')
         
         # Templates de ícones de status (BRN, PAR, PSN, TOX, SLP, FRZ)
         status_templates = {}
@@ -49,6 +50,7 @@ class GameStateDetector:
             'bag': cv2.imread(bag_path),
             'pokemon': cv2.imread(pokemon_path),
             'run': cv2.imread(run_path),
+            'chat': cv2.imread(chat_path),
             'status': status_templates  # Dicionário de templates de status
         }
 

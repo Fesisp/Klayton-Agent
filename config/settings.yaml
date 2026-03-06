@@ -45,6 +45,11 @@ detection:
   # Formato usado abaixo: [x1, y1, x2, y2]
   talk_search_area: [600, 300, 1300, 600]
 
+# Detecção de Mensagens Privadas (PM)
+chat_detection:
+  check_interval: 1.5        # Segundos entre verificações de PM
+  pm_threshold: 0.85         # Confiança mínima para detectar PM (0.0-1.0)
+
 ocr:
   # Ajuste para o seu caminho real
   tesseract_path: "C:/Program Files/Tesseract-OCR/tesseract.exe"

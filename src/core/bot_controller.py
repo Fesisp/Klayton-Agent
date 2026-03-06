@@ -7,6 +7,7 @@ from enum import Enum
 import ctypes
 from loguru import logger
 from ..perception.game_state_detector import GameState
+from ..perception.chat_handler import ChatHandler
 from ..utils.geometry import normalize_roi, crop_roi_safe, get_safe_random_point
 from ..utils.navigation_helper import NavigationHelper
 from ..utils.notifier import NotificationManager
@@ -33,6 +34,9 @@ class BotController:
         
         # === NOTIFICAÇÕES ===
         self.notifier = NotificationManager(config)
+        
+        # === DETECÇÃO DE PM (MENSAGENS PRIVADAS) ===
+        self.chat_handler = ChatHandler(self.detector, config)
         
         self.running = True
         self.paused = False  # Controle de pausa via hotkey
@@ -210,6 +214,20 @@ class BotController:
                     continue
                 
                 img = self.cap.capture()
+                
+                # --- INÍCIO: DETECÇÃO DE PM (MENSAGEM PRIVADA) ---
+                if self.chat_handler.check_for_alerts(img):
+                    logger.critical("🚨 PAUSANDO BOT POR SEGURANÇA (PM RECEBIDA)!")
+                    self.paused = True
+                    self.notifier.notify_all("⚠️ MENSAGEM PRIVADA RECEBIDA! O bot foi pausado imediatamente para evitar ban.", is_critical=True)
+                    
+                    # Alerta sonoro agressivo para te acordar/avisar
+                    for _ in range(5):
+                        winsound.MessageBeep(winsound.MB_ICONHAND)
+                        time.sleep(0.3)
+                    continue  # Congela o bot nesse frame
+                # --- FIM: DETECÇÃO DE PM ---
+                
                 game_state = self.detector.detect_state(img)
 
                 if self.debug:
