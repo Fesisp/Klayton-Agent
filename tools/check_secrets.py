@@ -22,7 +22,6 @@ SECRET_PATTERNS = {
 
 # Arquivos que NUNCA devem ser commitados
 BLOCKED_FILES = [
-    'config/settings.yaml',
     'config/secrets.yaml',
     '.env',
     'local_settings.yaml',

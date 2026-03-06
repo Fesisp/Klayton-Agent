@@ -1,0 +1,232 @@
+bot:
+  name: "PokeBot Pro Unified"
+  enabled: true
+  debug_mode: true
+  # Intervalo do loop principal (em segundos)
+  loop_interval: 1.0
+  # Comportamento ativo: 'idle', 'mission', 'hunting', 'follow'
+  behavior: "mission"
+
+screen:
+  capture_method: "mss"
+  fps: 10
+
+input:
+  mouse_move_duration: 0.25  # segundos para o movimento suave do mouse
+  # Configurações de humanização
+  use_human_movement: true   # Ativa movimentos em curva Bezier
+  min_delay: 0.05            # Delay mínimo antes de clicar (segundos)
+  max_delay: 0.15            # Delay máximo antes de clicar (segundos)
+  min_move_duration: 0.2     # Duração mínima do movimento do mouse (segundos)
+  max_move_duration: 0.5     # Duração máxima do movimento do mouse (segundos)
+  idle_action_chance: 0.05   # Chance (0-1) de executar ação idle a cada 10s
+
+# Caminhos (Ajuste se necessário)
+assets:
+  templates_dir: "assets/templates/"
+  shiny_image: "shiny.png"
+  goto_image: "goto.png"
+  talk_image: "talk.png"
+  fight_image: "fight.png"   # template do botão FIGHT
+  bag_image: "items.png"       # template do botão BAG
+  pokemon_image: "pokemon.png" # template do botão POKÉMON
+  run_image: "run.png"       # template do botão RUN
+
+# Detecção: thresholds para template matching
+detection:
+  talk_threshold: 0.6
+  shiny_threshold: 0.6
+  goto_threshold: 0.7
+  battle_button_threshold: 0.75
+  # Única área de combate onde os botões FIGHT/ITEMS/POKEMON/RUN aparecem
+  # Formato: [x1, y1, x2, y2]
+  battle_area: [680, 910, 1250, 1070]
+  # Área de busca ativa para o template talk.png (definida a partir do ROI selecionado)
+  # Formato usado abaixo: [x1, y1, x2, y2]
+  talk_search_area: [600, 300, 1300, 600]
+
+ocr:
+  # Ajuste para o seu caminho real
+  tesseract_path: "C:/Program Files/Tesseract-OCR/tesseract.exe"
+  use_easyocr: false # Tesseract com filtro de cor é mais rápido para jogos
+
+battle:
+  auto_battle: true
+  # Tempo mínimo entre ações de ataque; menor valor deixa o bot mais reativo
+  action_cooldown: 3.0
+
+strategy:
+  # Pokémons que o bot deve tentar capturar (se implementado) ou dar prioridade
+  whitelist:
+    - "chansey"
+    - "blissey"
+  # Pokémons dos quais o bot deve fugir imediatamente
+  blacklist:
+    - "magikarp"
+    - "caterpie"
+
+# Sistema de Caça (HUNTING mode)
+hunt:
+  # Lista de Pokémon que são alvos da caça
+  # Bot fugirá de qualquer outro Pokémon que não esteja nesta lista
+  target_pokemon:
+    - "ditto"
+    - "eevee"
+  
+  # (Opcional) Habilidade específica que está procurando
+  target_ability: null  # Ex: "hidden_ability", "synchronize"
+  
+  # (Opcional) Área delimitada para caça [x1, y1, x2, y2]
+  # Se null, usa movimento direcional aleatório (WASD)
+  area_bounds: null  # Ex: [500, 300, 1400, 900]
+  
+  # Intervalo entre movimentos de caça (segundos)
+  move_interval: 2.0
+
+# Sistema de Follow (FOLLOW mode)
+follow:
+  # Método de seguir: 'template' ou 'party_button'
+  # template: Detecta sprite do personagem principal
+  # party_button: Clica no botão "Follow" da party
+  method: "template"
+  
+  # Distância mínima em pixels para seguir (só para método template)
+  distance: 50
+  
+  # Intervalo de verificação (segundos)
+  check_interval: 1.0
+  
+  # Threshold de detecção do personagem (0-1)
+  match_threshold: 0.7
+  
+  # Template do personagem principal (para método template)
+  player_template: "player_char.png"
+  
+  # Template do botão Follow (para método party_button)
+  follow_button_template: "follow_button.png"
+  
+  # Threshold do botão Follow
+  button_threshold: 0.75
+
+# Configurações avançadas de FOLLOW (v2.4+)
+follow_settings:
+  # Nome do jogador principal para seguir via OCR (case-sensitive)
+  player_name: "Spinola"
+  
+  # Confiança mínima para detecção por template (0.0-1.0)
+  min_confidence: 0.7
+  
+  # Tempo em segundos para procurar antes de desistir quando perder o alvo
+  lost_target_timeout: 5.0
+  
+  # Intervalo de checagem quando em modo follow (segundos)
+  check_interval: 1.0
+
+
+# Controles por Hotkeys Globais
+controls:
+  enabled: true  # Ativa/desativa hotkeys globais
+  
+  # Mapeamento de teclas (usar formato <tecla>)
+  idle_key: "<f1>"      # Muda para estado IDLE
+  mission_key: "<f2>"   # Muda para estado MISSION
+  hunting_key: "<f3>"   # Muda para estado HUNTING
+  follow_key: "<f4>"    # Muda para estado FOLLOW
+  pause_key: "<f5>"     # Pausa o bot
+  resume_key: "<f6>"    # Retoma o bot
+  stop_key: "<f9>"      # Para o bot completamente
+
+# Controle Remoto via UDP (Host → VM)
+remote_control:
+  enabled: false        # Ativar para controle de VM a partir do host
+  port: 5005            # Porta UDP (deve ser a mesma no transmissor)
+  
+  # IMPORTANTE: Configure firewall da VM para permitir porta 5005 UDP
+  # Windows PowerShell (Admin):
+  # New-NetFirewallRule -DisplayName "PokeBot UDP" -Direction Inbound -LocalPort 5005 -Protocol UDP -Action Allow
+
+# Sistema de Chat com IA (opcional)
+chat:
+  enabled: false              # Ativar respostas automáticas no chat
+  provider: "ollama"          # ollama (local), gemini, openai
+  model: "llama3"             # Modelo a ser usado
+  api_key: ""                 # API key (necessária para gemini/openai)
+  base_url: "http://localhost:11434"  # URL base para Ollama
+  response_chance: 0.3        # Chance (0-1) de responder mensagens
+  min_response_time: 2.0      # Tempo mínimo antes de responder (segundos)
+  max_response_time: 5.0      # Tempo máximo antes de responder (segundos)
+  personality: "casual"       # casual, competitive, friendly, quiet
+
+# COORDENADAS EXATAS (ROI - Region of Interest)
+rois:
+  # === HUD de Batalha (Informações) ===
+  enemy_name: [54, 30, 250, 60]       # Nome do oponente (topo esquerdo)
+  enemy_level: [248, 30, 310, 60]     # Nível do oponente
+  enemy_hp_bar: [57, 72, 335, 95]     # Scanner HSV da vida inimiga
+  enemy_status_icon: [340, 70, 375, 95] # ROI para detectar BRN, PAR, SLP
+  
+  player_name: [1600, 810, 1850, 840] # Nome do seu Pokémon (centro-direita)
+  player_hp_bar: [1565, 852, 1845, 875] # Scanner HSV da sua vida
+  player_hp_text: [1750, 880, 1845, 905] # Números "HP: 150/150" para OCR
+  
+  # Barras de HP (aliases para compatibilidade)
+  hp_player: [1565, 852, 1845, 875]  # Barra de HP do jogador
+  hp_enemy: [57, 72, 335, 95]          # Barra de HP do inimigo
+
+  # === Área Geral de Detecção de Estado ===
+  # Cobre a região onde os botões FIGHT/BAG/PKMN/RUN aparecem
+  battle_area: [680, 910, 1250, 1070]
+
+  # === Botões de Ação (Cliques) ===
+  btn_fight: [875, 920, 1030, 975]
+  btn_bag: [875, 990, 1030, 1045]
+  btn_pokemon: [700, 990, 860, 1045]
+  btn_run: [1045, 990, 1210, 1045]
+
+  # === Slots de Ataque (Moves) ===
+  # Coordenadas da tela que mostra os 4 golpes disponíveis
+  moves:
+    - [740, 865, 955, 905]   # slot_1
+    - [965, 865, 1180, 905]  # slot_2
+    - [740, 940, 955, 980]   # slot_3
+    - [965, 940, 1180, 980]  # slot_4
+
+  # === Navegação e Exploração ===
+  talk_search_area: [600, 300, 1300, 600] # Onde o ícone "Espaço" ou chat aparece
+  
+  # Lista de Pokémon no menu de troca (popup "Select Pokémon")
+  switch_menu:
+    container: [700, 990, 1210, 1045]
+    slot_height: 30
+
+  # HUD de Equipe fixa na exploração (barra lateral inferior direita)
+  team_hud:
+    container: [1800, 750, 1920, 1080]  # Barra lateral de equipe na exploração
+    slot_height: 50
+
+# ================================
+# NOTIFICAÇÕES (Telegram + Discord)
+# ================================
+notifications:
+  # ==========================================
+  # TELEGRAM (Recomendado - Gratuito e Fácil)
+  # ==========================================
+  # Para configurar:
+  # 1. Abra o Telegram
+  # 2. Procure por "@BotFather" e inicie conversa
+  # 3. Digite: /newbot
+  # 4. Siga as instruções e receba o TOKEN (ex: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11)
+  # 5. Copie o TOKEN abaixo
+  # 6. Procure por "@GetIDs Bot" e use /my_id para obter seu CHAT_ID
+  telegram_bot_token: "YOUR_TELEGRAM_TOKEN_HERE"      # Token do bot do Telegram
+  telegram_chat_id: "YOUR_TELEGRAM_CHAT_ID_HERE"          # Seu ID pessoal no Telegram
+  
+  # ==========================================
+  # DISCORD (Alternativa - Gratuito)
+  # ==========================================
+  # Para configurar:
+  # 1. Entre em seu servidor Discord
+  # 2. Clique com botão direito no canal → Editar Canal
+  # 3. Integrações → Webhooks → Novo Webhook
+  # 4. Crie e copie a URL do webhook (ex: https://discord.com/api/webhooks/...)
+  discord_webhook_url: "YOUR_WEBHOOK_URL_HERE"  # URL do webhook Discord

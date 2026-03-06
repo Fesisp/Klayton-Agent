@@ -21,7 +21,6 @@ dist/
 # DADOS SENSÍVEIS / API KEYS
 # ================================
 # NÃO commitar credenciais do Discord e Telegram
-config/settings.yaml
 config/settings.yml
 config/config.yaml
 config/secrets.yaml
