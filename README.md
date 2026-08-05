@@ -1,254 +1,159 @@
-# Python Automation & Computer Vision Bot 🤖
-Autonomous game agent using Tesseract OCR, MVC Architecture, and ETL pipelines for real-time strategy.
+# Autonomous Computer Vision & State Machine Agent 🤖
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![OpenCV](https://img.shields.io/badge/OpenCV-Computer_Vision-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
-[![Tesseract](https://img.shields.io/badge/Tesseract-OCR-green?logo=google&logoColor=white)](https://github.com/tesseract-ocr/tesseract)
-[![Selenium](https://img.shields.io/badge/Selenium-Automation-43B02A?logo=selenium&logoColor=white)](https://www.selenium.dev/)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen)]()
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-Computer_Vision-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
+[![Tesseract OCR](https://img.shields.io/badge/Tesseract-OCR-green.svg?logo=google&logoColor=white)](https://github.com/tesseract-ocr/tesseract)
+[![MSS Capture](https://img.shields.io/badge/MSS-Ultra_Fast_Capture-orange.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An advanced, autonomous bot for Tibianic-like Pokémon MMORPGs, built with **Python**, **OpenCV**, and **Tesseract OCR**. This project demonstrates the power of computer vision and state machine logic for game automation.
+An autonomous real-time control agent designed for screen perception, Optical Character Recognition (OCR), state-driven decision logic, and humanized automation in Tibianic-like 2D MMORPG environments.
 
-> **Disclaimer:** This project is for **educational and research purposes only**. Use it at your own risk. The author is not responsible for any bans or penalties incurred while using this software.
+> **Disclaimer:** This project is developed strictly for **educational, research, and non-commercial automation testing purposes**. Use at your own discretion.
 
 ---
 
-## 🚀 Features
+## 🎯 Overview
 
-### 🎯 Core Features
-*   **Autonomous Navigation**: Detects "Goto" buttons and mission prompts to navigate automatically.
-*   **Intelligent Battle System**:
-    *   Reads enemy names and your own Pokémon/HP via OCR.
-    *   Makes smart decisions (Fight vs. Flee) based on type advantages.
-    *   Calculates damage multipliers (**STAB**, effectiveness).
-    *   Detects HP levels and recommends healing/switching.
-*   **Computer Vision (Perception)**:
-    *   Real-time screen capture using `mss`.
-    *   State detection (Exploring, Battling, Dialog).
-    *   Shiny Pokémon detection with audible alarms.
-*   **OCR Integration**: Uses Tesseract to read game text (names, levels, chat).
-*   **Configurable**: Highly customizable behavior via `config/settings.yaml`.
+Automating interactions within 2D retro MMORPGs presents significant challenges regarding real-time vision processing, dynamic state evaluation, low-latency UI capturing, and non-deterministic input execution.
 
-### 🤖 Humanization Features (v2.0)
-*   **Bezier Curve Movements**: Mouse moves in natural curves, not straight lines
-*   **Randomized Delays**: Variable timing (50-500ms) prevents pattern detection
-*   **Idle Actions**: Occasional camera movement, spacebar presses, and pauses
-*   **AI Chat Integration** (Optional): Natural conversation using Ollama/Gemini/OpenAI
-*   **HP Detection**: Color-based analysis of HP bars for intelligent item/switch decisions
+This software solves these challenges by combining:
+1. **Ultra-Fast Visual Perception Layer**: Screen capture via `mss` coupled with `OpenCV` template matching and HSV color analysis.
+2. **Contextual Text Extraction**: `Tesseract OCR` engine processing low-contrast UI text (HP bars, player names, combat dialogue).
+3. **Finite State Machine Architecture**: Modular operational states (*IDLE*, *MISSION*, *HUNTING*, *FOLLOW*) executing dynamic logic loops.
+4. **Anti-Detection & Humanization Subsystem**: Bezier curve movement trajectories, randomized micro-delays, and human action simulation.
 
-### 🎮 State Machine System (v2.1)
-*   **4 Operational Modes**:
-    *   **IDLE**: Passive observation (only alerts on Shiny)
-    *   **MISSION**: Automated quest progression (follows Goto/Talk)
-    *   **HUNTING**: Targeted Pokémon hunting (flees from non-targets)
-    *   **FOLLOW**: Tracks and follows your main character (for secondary accounts)
-*   **Priority System**: Shiny > Battle > Behavior
-*   **Smart Hunting**: Automatically flees from unwanted encounters
+---
 
-### 🎮 Hotkey Control System (v2.2)
-*   **Real-Time Control**: Switch modes instantly without restarting the bot
-*   **Global Hotkeys**: Works even when game window is focused (F1-F9)
-*   **Pause/Resume**: Freeze bot temporarily with a single key press
-*   **Follow Mode**: 
-    *   Template matching to visually track your character
-    *   Party button support for automatic following
-    *   Configurable distance and detection thresholds
-*   **30-60x Faster**: Change modes in ~1 second vs ~30-60 seconds before!
+## ✨ Key Features
 
-### 🌐 Remote Control via UDP (v2.3)
-*   **VM Control**: Control bot running in VM from your physical machine
-*   **Ultra-Low Latency**: 1-5ms response time (UDP protocol)
-*   **No RDP Required**: Send commands without opening VM console
-*   **Multi-VM Support**: Control multiple VMs simultaneously from one host
-*   **Simple Setup**: Just open 1 UDP port and configure IP
-*   **Background Operation**: Works even when VM is minimized
+### 🖼️ Real-Time Vision & Perception
+* **Color Space Analysis (HSV)**: High-frequency color detection (5–10ms latency) for HP bar monitoring and dynamic combat evaluation.
+* **Optical Character Recognition**: Tesseract-driven text extraction for target identification, party chat parsing, and combat logs.
+* **Shiny & Rare Entity Detection**: Audio and visual alerts triggered immediately upon matching rare entity assets.
 
-### 🧠 Advanced AI & Follow Intelligence (v2.4)
-*   **Dynamic HP Detection**: 
-    *   Color-based HP analysis (HSV color space)
-    *   **10-40x faster** than OCR (5-10ms vs 50-200ms)
-    *   Detects green/yellow/red HP bars
-*   **Persistent Follow Mode**:
-    *   **OCR Name Tracking**: Finds player by in-game username
-    *   **Memory System**: Remembers last seen position (5s timeout)
-    *   **Recovery Search**: Automatically rotates camera/moves to reacquire lost targets
-    *   **Smart Movement**: 70% proportional movement prevents vibration
-*   **Battle Intelligence**:
-    *   HP-based healing decisions (< 25% HP)
-    *   Automatic Pokémon switching when HP critical
-    *   Type advantage calculations with STAB bonus
+### 🧠 State Machine & Tactical Decision Engine
+* **Dynamic Battle Logic**: Turn-based damage prediction, type effectiveness calculation (STAB multipliers), speed tier analysis, and item inference (Choice Band, Life Orb, Choice Scarf).
+* **Multi-Mode Execution**:
+  * **IDLE**: Passive observer for rare entity detection.
+  * **MISSION**: Autonomous quest navigation & prompt handling.
+  * **HUNTING**: Targeted target selection and selective flee logic.
+  * **FOLLOW**: OCR & visual template matching to shadow a primary character account across game zones.
 
-### ⚔️ Advanced Battle Engine (v2.5) ⭐ NEW!
-*   **Risk/Reward Analysis**:
-    *   Projects next turn to prevent suicidal plays
-    *   Calculates if you'll survive before attacking
-    *   Smart healing: only heals when safe
-*   **Damage Prediction System**:
-    *   Estimates incoming enemy damage
-    *   Factors type effectiveness & enemy items
-    *   Auto-switches when death is imminent
-*   **Item Inference (AI)**:
-    *   **Detects Choice Scarf** automatically (speed-based)
-    *   **Detects Choice Band/Life Orb** (damage-based)
-    *   Adjusts strategy mid-battle based on inference
-*   **Speed Tier Calculations**:
-    *   Real Pokémon formula (IVs, EVs, Nature)
-    *   Predicts who attacks first
-    *   Considers worst-case scenarios
+### 🕹️ Real-Time Control & Input Humanization
+* **Global Hotkeys System**: Change modes on-the-fly (`F1`–`F9`) with ~1 second switching latency.
+* **Low-Latency UDP Remote Control**: Send IPC commands to an agent running inside a minimized Virtual Machine (VM).
+* **Humanized Inputs**: Non-linear Bezier curves for cursor path movement and randomized key-press delays (50–500ms).
 
+---
 
-## 🛠️ Technologies
+## 🛠 Tech Stack
 
-*   **[Python](https://www.python.org/)**: Core logic and control.
-*   **[OpenCV](https://opencv.org/)**: Image processing and template matching.
-*   **[Tesseract OCR](https://github.com/tesseract-ocr/tesseract)**: Optical Character Recognition for reading text.
-*   **[MSS](https://python-mss.readthedocs.io/)**: Ultra-fast cross-platform screen capture.
-*   **[PyAutoGUI](https://pyautogui.readthedocs.io/)**: Simulating mouse and keyboard actions.
-*   **[SciPy](https://scipy.org/)**: Bezier curve calculations for human-like movements.
-*   **[Pynput](https://pynput.readthedocs.io/)**: Global hotkey listener for real-time control.
-*   **[Loguru](https://github.com/Delgan/loguru)**: Pleasant execution logging.
+| Domain | Technology / Library | Description |
+| :--- | :--- | :--- |
+| **Language** | Python 3.10+ | Core engine and state orchestration |
+| **Vision & Image** | OpenCV (`opencv-python`) | Pattern matching, HSV color masks |
+| **OCR** | Tesseract OCR (`pytesseract`) | In-game text and UI data extraction |
+| **Capture & Control** | `mss`, `pyautogui`, `pynput` | Cross-platform fast screen grab & global keyboard hooks |
+| **Mathematics & Motion** | `scipy` | Bezier curve calculations for natural cursor kinematics |
+| **Logging & Config** | `loguru`, PyYAML | Execution diagnostics and dynamic configuration |
 
-## 📋 Prerequisites
+---
 
-1.  **Windows OS** (Required for `winsound` alerts and specific input handling).
-2.  **Python 3.8+** installed.
-3.  **Tesseract OCR** installed:
-    *   Download and install from [UB-Mannheim/tesseract/wiki](https://github.com/UB-Mannheim/tesseract/wiki).
-    *   Ensure the installation path matches the one in your `config/settings.yaml` (default: `C:\Program Files\Tesseract-OCR\tesseract.exe`).
+## 🏗 System Architecture & Workflow
 
-## ⚙️ Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/Fesisp/PokeBot.git
-    cd PokeBot
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Configure Tesseract:**
-    Open `config/settings.yaml` and verify the `ocr.tesseract_cmd` path points to your local Tesseract executable.
-
-## 🎮 Quick Start
-
-### Basic Usage
-
-1.  **Launch the Game Client** and ensure it is visible on the screen.
-2.  **Run the Bot:**
-    ```bash
-    python run_bot.py
-    ```
-3.  **Controls:**
-    *   The bot will display available hotkeys on startup
-    *   **F1-F4**: Switch between modes instantly
-    *   **F5/F6**: Pause/Resume bot
-    *   **F9**: Stop bot completely
-    *   **Ctrl+C** (terminal): Alternative way to stop
-
-### Real-Time Control (NEW! v2.2)
-
-**No need to restart the bot anymore!** Use hotkeys to control in real-time:
-
-| Hotkey | Action |
-|--------|--------|
-| **F1** | Switch to IDLE mode |
-| **F2** | Switch to MISSION mode |
-| **F3** | Switch to HUNTING mode |
-| **F4** | Switch to FOLLOW mode |
-| **F5** | Pause bot |
-| **F6** | Resume bot |
-| **F9** | Stop bot |
-
-**Example workflow:**
-```
-1. Start bot: python run_bot.py
-2. Press F2 → Bot starts doing missions
-3. Press F5 → Bot pauses (you take control)
-4. Press F6 → Bot resumes
-5. Press F3 → Bot switches to hunting mode
-6. Press F9 → Bot stops
+```mermaid
+graph TD
+    A[Screen Capture - MSS] --> B[Perception Layer - OpenCV / Tesseract]
+    B --> C{State Evaluator}
+    C -->|Emergency HP / Shiny| D[Priority Interrupt Handler]
+    C -->|Active Mode| E[State Machine Engine]
+    E --> F[IDLE / MISSION / HUNTING / FOLLOW]
+    F --> G[Decision Engine & Battle Calculator]
+    G --> H[Humanized Action Executor - Bezier / PyAutoGUI]
 ```
 
-All in **~1 second each** - no more editing configs and restarting!
+---
 
-### Choosing a Mode (Configuration)
+## 🚀 Getting Started
 
-You can also set the initial mode in `config/settings.yaml`:
+### Prerequisites
 
-**Mission Mode (Default)** - Automated quest progression:
-```yaml
-bot:
-  behavior: "mission"
-```
+* **Operating System**: Windows 10/11 (Required for native input & alert subsystems).
+* **Python**: `3.10` or higher.
+* **Tesseract OCR Engine**:
+  * Download and install Tesseract OCR from [UB-Mannheim/tesseract/wiki](https://github.com/UB-Mannheim/tesseract/wiki).
+  * Ensure the executable path matches your configuration (Default: `C:\Program Files\Tesseract-OCR\tesseract.exe`).
 
-**Hunting Mode** - Target specific Pokémon:
-```yaml
-bot:
-  behavior: "hunting"
+### Installation
 
-hunt:
-  target_pokemon: ["ditto", "eevee"]
-  move_interval: 2.0
-```
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Fesisp/PokeBot.git
+   cd PokeBot
+   ```
 
-**Follow Mode** - Track and follow your main character:
-```yaml
-bot:
-  behavior: "follow"
+2. **Set up a Virtual Environment**:
+   ```bash
+   python -m venv venv
+   # Windows PowerShell
+   .\venv\Scripts\Activate.ps1
+   ```
 
-follow:
-  method: "template"  # or "party_button"
-  player_template: "player_char.png"
-  match_threshold: 0.7
-```
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-**Idle Mode** - Passive Shiny detection only:
-```yaml
-bot:
-  behavior: "idle"
-```
+4. **Configuration Verification**:
+   Edit `config/settings.yaml` to ensure your Tesseract OCR path and screen coordinates match your target client.
 
-### 📖 Documentation
+---
 
-- **[🚀 Hotkey Quick Setup](docs/QUICK_SETUP_HOTKEYS.md)** - Get started with hotkeys in 5 minutes
-- **[🎮 Hotkey System Guide](docs/HOTKEY_SYSTEM.md)** - Complete hotkey documentation
-- **[🌐 Remote Control UDP](docs/REMOTE_CONTROL_UDP.md)** - Control bot in VM from host machine
-- **[🧠 Follow Mode Guide](docs/FOLLOW_MODE_GUIDE.md)** - Advanced FOLLOW with memory and AI
-- **[⚔️ Advanced Battle Engine](docs/ADVANCED_BATTLE_ENGINE.md)** - Risk calculation & damage prediction ⭐ NEW!
-- **[📋 Changelog v2.4](docs/CHANGELOG_v2.4.md)** - What's new in v2.4
-- **[Quick Start Guide](docs/QUICK_START.md)** - Installation and setup
-- **[Modes Guide](docs/MODES_QUICK_GUIDE.md)** - How to use IDLE/MISSION/HUNTING/FOLLOW
-- **[State Machine](docs/STATE_MACHINE.md)** - Technical architecture
-- **[Humanization Features](docs/HUMANIZATION_FEATURES.md)** - Anti-detection features
-- **[Changelog](docs/CHANGELOG.md)** - Version history and updates
+## 🎮 Usage
 
+### Launching the Agent
+
+1. Open the target game client and ensure it is unobstructed on screen.
+2. Run the main entry point:
+   ```bash
+   python run_bot.py
+   ```
+
+### Hotkey Mapping (Real-Time Control)
+
+| Key | Mode / Action | Description |
+| :---: | :--- | :--- |
+| `F1` | **IDLE Mode** | Passive screen scanning (alerts on target detection) |
+| `F2` | **MISSION Mode** | Autonomous navigation and quest interactions |
+| `F3` | **HUNTING Mode** | Targeted entity hunting & selective retreat |
+| `F4` | **FOLLOW Mode** | Shadows primary lead character |
+| `F5` | **Pause** | Temporarily halts execution |
+| `F6` | **Resume** | Resumes agent operations |
+| `F9` | **Stop** | Gracefully shuts down agent thread |
+
+---
 
 ## 📂 Project Structure
 
-```
+```text
 PokeBot/
-├── assets/           # Template images for OpenCV matching
-├── config/           # Configuration files (settings.yaml)
-├── data/             # Game knowledge (Pokedex, moves, types JSONs)
-├── docs/             # Documentation and design overviews
-├── src/              # Source code
-│   ├── action/       # Mouse/Keyboard inputs
-│   ├── core/         # Main loop and bot controller
-│   ├── decision/     # Battle logic and strategy
-│   ├── knowledge/    # Data managers (PokeAPI, Team)
-│   ├── perception/   # Vision, OCR, and state detection
-│   └── utils/        # Helper functions
-├── tests/            # Unit tests
-└── run_bot.py        # Entry point
+├── assets/           # Template images for visual matching
+├── config/           # System settings & mode configurations (YAML)
+├── data/             # Game knowledge bases (Move sets, type matrices)
+├── docs/             # Technical guides and architecture details
+├── src/
+│   ├── action/       # Humanized mouse/keyboard execution engine
+│   ├── core/         # Main loop, thread manager, state orchestrator
+│   ├── decision/     # Tactical engine, damage predictor & AI inference
+│   ├── knowledge/    # Game knowledge managers
+│   ├── perception/   # OpenCV vision processing & OCR wrappers
+│   └── utils/        # Logger and auxiliary utilities
+├── tests/            # Test suite
+└── run_bot.py        # Primary application entry point
 ```
+
+---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+Distributed under the **MIT License**. See `LICENSE` for details.
